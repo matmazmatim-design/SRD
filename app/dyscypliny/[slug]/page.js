@@ -89,11 +89,11 @@ export default async function SportPage({ params }) {
             const when = e.slug ? eventWhen(e) : null;
             const inner = (
               <>
-                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
-                  <span className="display" style={{ fontSize: 34 }}>{PLEC[e.plec] || e.nazwa}</span>
+                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                  <span className="display" style={{ fontSize: 'clamp(26px, 2.6vw, 34px)', minWidth: 0 }}>{PLEC[e.plec] || e.nazwa}</span>
                   {ready
-                    ? <span className="chip chip-ok">Status dostępny</span>
-                    : <span className="chip chip-res">Symulacja w przygotowaniu</span>}
+                    ? <span className="chip chip-ok" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Status dostępny</span>
+                    : <span className="chip chip-res" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Symulacja w przygotowaniu</span>}
                 </span>
                 {when && <span style={{ color: 'var(--muted)', fontSize: 14, textTransform: 'capitalize' }}>{when}</span>}
                 {e.opis && <span style={{ color: 'var(--body)', fontSize: 15 }}>{e.opis}</span>}

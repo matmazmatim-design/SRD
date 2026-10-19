@@ -48,9 +48,9 @@ insert into public.konkurencje (dyscyplina_id, slug, nazwa, plec, miejsc, data_s
 select d.id, v.slug, v.nazwa, v.plec, v.miejsc, v.data_startu::date, v.godzina, v.miejsce, v.opis from (values
   ('golf', 'kobiety', 'Golf kobiet', 'K', 60::smallint, null, null, null, 'Turniej indywidualny, 72 dołki, gra na uderzenia.'),
   ('golf', 'mezczyzni', 'Golf mężczyzn', 'M', 60::smallint, null, null, null, 'Turniej indywidualny, 72 dołki, gra na uderzenia.'),
-  ('triathlon', 'kobiety', 'Triathlon kobiet', 'K', 55::smallint, '2028-07-15', '7:30', 'Venice Beach', '1,5 km pływania, 40 km roweru, 10 km biegu. Pierwszy medal igrzysk.'),
+  ('triathlon', 'kobiety', 'Triathlon kobiet', 'K', 55::smallint, '2028-07-15', '7:30', 'Venice Beach', '1,5 km pływania, 40 km roweru, 10 km biegu.'),
   ('triathlon', 'mezczyzni', 'Triathlon mężczyzn', 'M', 55::smallint, '2028-07-16', '7:30', 'Venice Beach', '1,5 km pływania, 40 km roweru, 10 km biegu.'),
-  ('triathlon', 'sztafeta-mieszana', 'Sztafeta mieszana', 'X', null::smallint, '2028-07-20', '8:00', 'Venice Beach', 'Dwie kobiety i dwóch mężczyzn na zmianę; kraj potrzebuje 2 + 2 zakwalifikowanych.')
+  ('triathlon', 'sztafeta-mieszana', 'Sztafeta mieszana', 'X', null::smallint, '2028-07-20', '8:00', 'Venice Beach', 'Czworo zawodników startuje po kolei: kobieta, mężczyzna, kobieta, mężczyzna. Każdy pokonuje 350 m pływania, 6,6 km roweru (2 pętle) i 1,6 km biegu (2 pętle).')
 ) as v(dyscyplina, slug, nazwa, plec, miejsc, data_startu, godzina, miejsce, opis) join public.dyscypliny d on d.slug = v.dyscyplina;
 
 insert into public.zrodla_rankingow (slug, nazwa, typ, parametry, adres_strony) values
