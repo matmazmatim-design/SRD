@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { paramsFromCurl } from '../../lib/uci';
 import { parsePastedTable } from '../../lib/paste';
+import { progiToText, textToProgi } from '../../lib/compute';
 
 const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon', owgr: 'OWGR', wklejka: 'Wklejka' };
 
@@ -99,6 +100,19 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
     setPreview({ top: top || [], pl: (all || []).filter(isPl) });
   }
 
+  const [rulesText, setRulesText] = useState(progiToText(source.zasady?.progi));
+  const [rulesOther, setRulesOther] = useState(source.zasady?.pozostali || '');
+  const [rulesClose, setRulesClose] = useState(source.zasady?.zamkniecie || '');
+  const [rulesDoc, setRulesDoc] = useState(source.zasady?.regulamin || '');
+
+  async function saveRules(e) {
+    e.preventDefault();
+    const progi = textToProgi(rulesText);
+    if (progi === null) return setMsg({ ok: '', err: 'Progi wpisz w formie: 1-8:2, 9-19:1' });
+    const zasady = progi.length || rulesOther.trim() ? { progi, pozostali: rulesOther.trim() || null, zamkniecie: rulesClose || null, regulamin: rulesDoc.trim() || null } : null;
+    await updateLink({ zasady });
+  }
+
   async function updateLink(patch) {
     setMsg({ ok: '', err: '' });
     const { error } = await supabase.from('zrodla_rankingow').update(patch).eq('id', source.id);
@@ -134,6 +148,28 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
           <button type="button" className="pill" aria-pressed={source.rodzaj === 'krajowy'} onClick={() => updateLink({ rodzaj: 'krajowy' })}>Ranking krajów</button>
         </div>
       </div>
+      <details>
+        <summary style={{ cursor: 'pointer', minHeight: 40, display: 'flex', alignItems: 'center', fontWeight: 600, fontSize: 14 }}>
+          Zasady kwot z rankingu {source.zasady?.progi?.length ? `(${progiToText(source.zasady.progi)})` : '(nie ustawione)'}
+        </summary>
+        <form onSubmit={saveRules} style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 8 }}>
+          <div className="form-grid">
+            <label className="field" htmlFor={'progi-' + source.id}>Progi: miejsca w rankingu → liczba miejsc na IO
+              <input id={'progi-' + source.id} type="text" value={rulesText} onChange={e => setRulesText(e.target.value)} placeholder="1-8:2, 9-19:1" />
+            </label>
+            <label className="field" htmlFor={'close-' + source.id}>Zamknięcie rankingu
+              <input id={'close-' + source.id} type="date" value={rulesClose} onChange={e => setRulesClose(e.target.value)} />
+            </label>
+          </div>
+          <label className="field" htmlFor={'other-' + source.id}>Dla krajów / zawodników poza strefą (opcjonalnie)
+            <input id={'other-' + source.id} type="text" value={rulesOther} onChange={e => setRulesOther(e.target.value)} placeholder="np. Szansa jeszcze przez MŚ 2027" />
+          </label>
+          <label className="field" htmlFor={'doc-' + source.id}>Link do regulaminu (opcjonalnie)
+            <input id={'doc-' + source.id} type="url" value={rulesDoc} onChange={e => setRulesDoc(e.target.value)} placeholder="https://…" />
+          </label>
+          <button type="submit" className="btn btn-ghost" style={{ alignSelf: 'flex-start' }}>Zapisz zasady</button>
+        </form>
+      </details>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {source.typ === 'uci' && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
         <button type="button" className="btn btn-ghost" onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? 'Zamknij wklejkę' : 'Wklej ranking'}</button>
@@ -266,14 +302,16 @@ export default function Sources({ session }) {
   const [sports, setSports] = useState([]);
 
   async function load() {
-    const [{ data: s }, { data: n }, { data: ev }, { data: sp }] = await Promise.all([
-      supabase.from('zrodla_rankingow').select('id, slug, nazwa, typ, rodzaj, parametry, adres_strony, aktywne, konkurencja_id').order('nazwa'),
+    const [{ data: s0 }, { data: n }, { data: ev }, { data: sp }] = await Promise.all([
+      supabase.from('zrodla_rankingow').select('id, slug, nazwa, typ, rodzaj, parametry, adres_strony, aktywne, konkurencja_id, zasady').order('nazwa'),
       supabase.from('notowania').select('id, zrodlo_id, stan_na, pobrano, liczba_wierszy, status, komunikat').order('pobrano', { ascending: false }).limit(200),
       supabase.from('konkurencje').select('id, nazwa, plec, dyscypliny(nazwa)').order('nazwa'),
       supabase.from('dyscypliny').select('id, nazwa').order('nazwa')
     ]);
     setEvents((ev || []).sort((a, b) => eventLabel(a).localeCompare(eventLabel(b), 'pl')));
     setSports(sp || []);
+    let s = s0;
+    if (!s) ({ data: s } = await supabase.from('zrodla_rankingow').select('id, slug, nazwa, typ, rodzaj, parametry, adres_strony, aktywne, konkurencja_id').order('nazwa'));
     setSources(s || []);
     setSnaps(n || []);
   }

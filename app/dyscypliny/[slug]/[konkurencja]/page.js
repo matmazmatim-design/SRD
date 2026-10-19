@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import RankingTable from '../../../../components/RankingTable';
 import SourceRanking from '../../../../components/SourceRanking';
 import { getEventPage } from '../../../../lib/data';
-import { summarize, statusKind, isPolish, formatNumber, formatDatePl, STATE_LABEL } from '../../../../lib/compute';
+import { summarize, statusKind, isPolish, formatNumber, formatDatePl, STATE_LABEL, quotaFor, gapToLine, lastQuotaPosition } from '../../../../lib/compute';
 
 export const revalidate = 300;
 
@@ -69,6 +69,18 @@ export default async function EventPage({ params }) {
                   <span style={{ fontSize: 17, color: 'var(--muted)' }}>{mainRanking.rodzaj === 'krajowy' ? 'miejsce w rankingu krajów' : `miejsce – ${bestPl.zawodnik}`}</span>
                 </div>
                 <span style={{ fontSize: 14, color: 'var(--body)' }}>{formatNumber(bestPl.punkty, 0)} pkt · stan na {formatDatePl(mainRanking.stanNa)}</span>
+                {mainRanking.zasady?.progi?.length > 0 && (() => {
+                  const q = quotaFor(bestPl.pozycja, mainRanking.zasady);
+                  const gap = gapToLine(mainRanking.rows, bestPl, mainRanking.zasady);
+                  return q ? (
+                    <span className="chip chip-ok" style={{ alignSelf: 'flex-start', fontSize: 14 }}>W strefie · {q === 1 ? '1 miejsce' : `${q} miejsca`} na IO</span>
+                  ) : (
+                    <>
+                      <span className="chip chip-out" style={{ alignSelf: 'flex-start', fontSize: 14 }}>Poza strefą rankingu</span>
+                      {gap !== null && <span style={{ fontSize: 14, color: 'var(--body)' }}>Do {lastQuotaPosition(mainRanking.zasady)}. miejsca brakuje {formatNumber(gap, 0)} pkt</span>}
+                    </>
+                  );
+                })()}
               </>
             ) : (
               <span className="chip chip-out" style={{ alignSelf: 'flex-start' }}>Polski nie ma w rankingu</span>

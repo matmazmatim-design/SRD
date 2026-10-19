@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SPORTS } from '../../../lib/sports';
 import { getSportHub } from '../../../lib/data';
-import { statusKind, formatDatePl, daysBetween } from '../../../lib/compute';
+import { statusKind, formatDatePl, daysBetween, quotaFor } from '../../../lib/compute';
 
 export const revalidate = 300;
 
@@ -111,7 +111,9 @@ export default async function SportPage({ params }) {
                 {!e.poles?.length && rk && (
                   <span style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderTop: '1px solid var(--line)', fontSize: 15 }}>
                     <strong>{rk.rodzaj === 'krajowy' ? 'Polska w rankingu krajów' : (rkPl?.zawodnik || 'Polacy w rankingu')}</strong>
-                    <span className={rkPl ? 'chip chip-res' : 'chip chip-out'}>{rkPl ? `${rkPl.pozycja}. miejsce` : 'poza rankingiem'}</span>
+                    <span className={rkPl && rk.zasady?.progi && quotaFor(rkPl.pozycja, rk.zasady) ? 'chip chip-ok' : rkPl ? 'chip chip-res' : 'chip chip-out'}>
+                      {rkPl ? `${rkPl.pozycja}. miejsce${rk.zasady?.progi ? (quotaFor(rkPl.pozycja, rk.zasady) ? ' · w strefie' : ' · poza strefą') : ''}` : 'poza rankingiem'}
+                    </span>
                   </span>
                 )}
                 {ready && <span className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: 'auto' }}>Zobacz status kwalifikacji ›</span>}
