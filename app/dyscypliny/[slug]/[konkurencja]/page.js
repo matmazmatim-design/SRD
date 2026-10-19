@@ -17,6 +17,12 @@ export async function generateMetadata({ params }) {
   return { title: data ? `${data.event.nazwa} – kwalifikacje LA28` : 'Konkurencja' };
 }
 
+function qualLabel(n) {
+  if (n === 1) return 'kwalifikacja';
+  const d = n % 10, t = n % 100;
+  return d >= 2 && d <= 4 && (t < 12 || t > 14) ? 'kwalifikacje' : 'kwalifikacji';
+}
+
 export default async function EventPage({ params }) {
   const { slug, konkurencja } = await params;
   const data = await getEventPage(slug, konkurencja);
@@ -57,7 +63,7 @@ export default async function EventPage({ params }) {
             <>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                 <span className="num" style={{ fontSize: 68 }}>{s.polesIn.length}</span>
-                <span style={{ fontSize: 17, color: 'var(--muted)' }}>{s.polesIn.length === 1 ? 'miejsce' : 'miejsca'} w symulacji</span>
+                <span style={{ fontSize: 17, color: 'var(--muted)' }}>{qualLabel(s.polesIn.length)} w symulacji</span>
               </div>
               <span className={CHIP[s.state]} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{STATE_LABEL[s.state]}</span>
             </>
@@ -91,15 +97,6 @@ export default async function EventPage({ params }) {
         </div>
       </section>
 
-      {simulation && (
-        <section className="stats">
-          <div className="stat"><span className="label">Miejsc w konkurencji</span><span className="value">{event.miejsc ?? s.qualifiedCount}</span><span className="sub">{s.qualifiedCount} obsadzonych w symulacji</span></div>
-          <div className="stat"><span className="label">Kraje z miejscem</span><span className="value">{s.countries}</span><span className="sub">na liście olimpijskiej</span></div>
-          <div className="stat"><span className="label">Najdalsze miejsce na liście</span><span className="value">{rankingLabel} {s.lastRank ?? '—'}</span><span className="sub">pozycja w rankingu</span></div>
-          <div className="stat"><span className="label">Odcięci limitem kraju</span><span className="value">{s.lists.limit_kraju.length}</span><span className="sub">wyżej w rankingu, bez miejsca</span></div>
-        </section>
-      )}
-
       {(poles.length > 0 || manual.length > 0) && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <h2 className="h2" style={{ fontSize: 32 }}>Polacy</h2>
@@ -107,20 +104,25 @@ export default async function EventPage({ params }) {
             {poles.slice(0, 4).map(p => {
               const kind = statusKind(p.sciezka);
               const onList = s.lists.zakwalifikowani.find(r => r.zawodnik === p.zawodnik);
+              const onReserve = s.lists.rezerwa.find(r => r.zawodnik === p.zawodnik);
+              const margin = onList ? s.qualifiedCount - onList.lp : 0;
+              const foot = onList
+                ? `${onList.lp}. miejsce na liście olimpijskiej · zapas: ${margin} ${margin === 1 ? 'miejsce' : 'miejsc'} nad linią`
+                : onReserve
+                  ? `${onReserve.lp}. miejsce na liście rezerwowej`
+                  : 'Poza listą olimpijską';
               return (
                 <article key={p.zawodnik} className="person">
                   <div className="person-head">
-                    <div>
-                      <div className="person-name">{p.zawodnik}</div>
-                      <div className="person-sub">{p.sciezka}</div>
-                    </div>
+                    <div className="person-name">{p.zawodnik}</div>
                     <span className={CHIP[kind]}>{kind === 'ok' ? 'Zakwalifikowany' : kind === 'warn' ? 'Na granicy' : kind === 'res' ? 'Rezerwa' : 'Poza strefą'}</span>
                   </div>
+                  <div className="person-sub">{p.sciezka}</div>
                   <div className="kv">
                     <div><div className="k">{rankingLabel}</div><div className="v">{p.pozycja_rankingu ?? '—'}</div></div>
-                    <div><div className="k">Punkty</div><div className="v">{formatNumber(p.punkty, slug === 'golf' ? 2 : 2)}</div></div>
+                    <div><div className="k">Punkty</div><div className="v">{formatNumber(p.punkty, 2)}</div></div>
                   </div>
-                  {onList && <div style={{ fontSize: 14, color: 'var(--body)' }}>{onList.lp}. miejsce na liście olimpijskiej · zapas: {s.qualifiedCount - onList.lp} {s.qualifiedCount - onList.lp === 1 ? 'miejsce' : 'miejsc'} nad linią</div>}
+                  <div className="person-foot">{foot}</div>
                 </article>
               );
             })}
