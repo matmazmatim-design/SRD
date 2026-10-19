@@ -15,6 +15,8 @@ from (values
   ('mtb-xco-mezczyzni', 'Kolarstwo górskie (XCO) mężczyzn', 'M', 'Cross-country olimpijski. Miejsca dostają kraje według rankingu olimpijskiego UCI.')
 ) as v(slug, nazwa, plec, opis)
 join public.dyscypliny d on d.slug = 'kolarstwo'
+-- po migracji 0005 te konkurencje są już w „Kolarstwie górskim” – nie twórz ich ponownie
+where not exists (select 1 from public.dyscypliny where slug = 'kolarstwo-gorskie')
 on conflict (dyscyplina_id, slug) do nothing;
 
 -- Ranking MTB mężczyzn: przypięty do konkurencji, to ranking krajów.
@@ -22,4 +24,5 @@ update public.zrodla_rankingow z
 set konkurencja_id = k.id, rodzaj = 'krajowy'
 from public.konkurencje k
 join public.dyscypliny d on d.id = k.dyscyplina_id
-where z.slug = 'uci-mtb-xco-m' and d.slug = 'kolarstwo' and k.slug = 'mtb-xco-mezczyzni';
+where z.slug = 'uci-mtb-xco-m' and d.slug = 'kolarstwo' and k.slug = 'mtb-xco-mezczyzni'
+  and z.konkurencja_id is null;

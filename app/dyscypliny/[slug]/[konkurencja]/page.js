@@ -21,7 +21,7 @@ export default async function EventPage({ params }) {
   const { slug, konkurencja } = await params;
   const data = await getEventPage(slug, konkurencja);
   if (!data) notFound();
-  const { sport, event, siblings, simulation, rows, rankings = [] } = data;
+  const { sport, parent, event, siblings, simulation, rows, rankings = [] } = data;
   const mainRanking = rankings[0] || null;
   const bestPl = mainRanking?.polish?.[0] || null;
   const rankingLabel = RANKING_LABEL[slug] || 'Ranking';
@@ -33,6 +33,7 @@ export default async function EventPage({ params }) {
     <main className="container">
       <div className="crumbs">
         <Link href="/dyscypliny">Dyscypliny</Link> <span aria-hidden="true">›</span>{' '}
+        {parent && <><Link href={`/dyscypliny/${parent.slug}`}>{parent.name}</Link> <span aria-hidden="true">›</span>{' '}</>}
         <Link href={`/dyscypliny/${sport.slug}`}>{sport.name}</Link> <span aria-hidden="true">›</span> {PLEC[event.plec] || event.nazwa}
       </div>
 

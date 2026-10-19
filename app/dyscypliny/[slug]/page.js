@@ -39,7 +39,7 @@ function eventWhen(e) {
 
 export default async function SportPage({ params }) {
   const { slug } = await params;
-  const { sport, events, terms } = await getSportHub(slug);
+  const { sport, events, terms, children = [], parent } = await getSportHub(slug);
   if (!sport) notFound();
 
   const today = todayIso();
@@ -48,17 +48,38 @@ export default async function SportPage({ params }) {
   const next = firstUpcoming >= 0 ? terms[firstUpcoming] : null;
   const close = terms.find(t => /zamknięcie rankingów/i.test(t.tytul));
 
-  const cards = events.length ? events : [{ slug: null, plec: 'K' }, { slug: null, plec: 'M' }];
+  const cards = events.length ? events : children.length ? [] : [{ slug: null, plec: 'K' }, { slug: null, plec: 'M' }];
 
   return (
     <main className="container">
-      <div className="crumbs"><Link href="/dyscypliny">Dyscypliny</Link> <span aria-hidden="true">›</span> {sport.name}</div>
+      <div className="crumbs">
+        <Link href="/dyscypliny">Dyscypliny</Link> <span aria-hidden="true">›</span>{' '}
+        {parent && <><Link href={`/dyscypliny/${parent.slug}`}>{parent.name}</Link> <span aria-hidden="true">›</span>{' '}</>}
+        {sport.name}
+      </div>
       <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h1 className="display" style={{ fontSize: 'clamp(48px, 8vw, 76px)' }}>{sport.name}</h1>
-        <p className="lead">Wybierz konkurencję, żeby zobaczyć listę olimpijską, Polaków i linię kwalifikacji.</p>
+        <p className="lead">{children.length && !events.length ? 'Wybierz dyscyplinę, a potem konkurencję kobiet lub mężczyzn.' : 'Wybierz konkurencję, żeby zobaczyć listę olimpijską, Polaków i linię kwalifikacji.'}</p>
       </section>
 
-      <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {children.length > 0 && (
+        <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h2 className="eyebrow" style={{ margin: 0 }}>Dyscypliny</h2>
+          <div className="tiles">
+            {children.map(c => (
+              <Link key={c.slug} href={`/dyscypliny/${c.slug}`} className={'tile' + (c.tracked || c.hasRanking ? ' tracked' : '')}>
+                <span className="speed" aria-hidden="true"><i /><i /><i /></span>
+                <span className="tile-name">{c.name}</span>
+                <span className="tile-foot">
+                  {c.tracked ? <span className="chip chip-ok">Polak w strefie</span> : c.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {cards.length > 0 && <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <h2 className="eyebrow" style={{ margin: 0 }}>Konkurencje w Los Angeles</h2>
         <div className="choice">
           {cards.map((e, i) => {
@@ -103,7 +124,7 @@ export default async function SportPage({ params }) {
             );
           })}
         </div>
-      </section>
+      </section>}
 
       {terms.length > 0 && (
         <section className="row-wrap" style={{ alignItems: 'flex-start' }}>
