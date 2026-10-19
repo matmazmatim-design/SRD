@@ -1,0 +1,121 @@
+/* Sportowy Rytm Dnia – motyw. Kolory jako zmienne; tryb wybiera atrybut data-theme na <html>. */
+:root {
+  --bg: #07080A;
+  --surface: #12151A;
+  --ink: #F5F7FA;
+  --muted: #9AA3AE;
+  --body: #C3CAD3;
+  --line: #242A32;
+  --line-2: #3A414B;
+  --rowline: #20252C;
+  --blue: #00A0FE;
+  --blue-text: #00A0FE;
+  --blue-soft: rgba(0, 160, 254, 0.14);
+  --ok: #4BE08F;
+  --ok-bg: #0E2A1B;
+  --ok-dot: #2FD07A;
+  --tilebar: #2E343D;
+  --f-display: 'Saira', 'Arial Narrow', sans-serif;
+  --f-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #F2F5F8;
+  --surface: #FFFFFF;
+  --ink: #0B0D10;
+  --muted: #4D5763;
+  --body: #2E3742;
+  --line: #DDE2E8;
+  --line-2: #B4BDC7;
+  --rowline: #E8ECF0;
+  --blue-text: #0070BB;
+  --blue-soft: rgba(0, 160, 254, 0.12);
+  --ok: #0B6634;
+  --ok-bg: #E2F5EA;
+  --ok-dot: #1B8A4F;
+  --tilebar: #D5DBE2;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  min-height: 100vh;
+}
+a { color: inherit; }
+a:hover { color: var(--blue-text); }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Nagłówek – zawsze czarny, bo logo SRD jest projektowane na czarnym tle */
+.site-header { background: #000000; color: #FFFFFF; border-bottom: 2px solid var(--blue); }
+.site-header .container { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 28px; padding-block: 8px; }
+.brand { display: flex; align-items: center; gap: 12px; color: #FFFFFF; text-decoration: none; }
+.brand img { height: 52px; width: auto; display: block; }
+.brand-name { font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: 20px; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.05; }
+.brand-name span { color: #00A0FE; display: block; font-size: 14px; }
+.nav { display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 15px; }
+.nav a { color: #A9B8C6; text-decoration: none; padding: 10px 0; }
+.nav a[aria-current='page'] { color: #FFFFFF; font-weight: 600; border-bottom: 2px solid #00A0FE; }
+.header-side { display: flex; align-items: center; gap: 14px; }
+.stamp { font-size: 13px; color: #A9B8C6; }
+.theme-toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid #2E343D; background: transparent; color: #FFFFFF; font: inherit; font-size: 13px; cursor: pointer; }
+.theme-toggle:hover { border-color: #00A0FE; }
+
+main.container { padding-block: 32px 64px; display: flex; flex-direction: column; gap: 32px; }
+
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.display { margin: 0; font-family: var(--f-display); font-style: italic; font-weight: 800; text-transform: uppercase; line-height: 0.95; text-wrap: balance; }
+h1.display { font-size: clamp(42px, 7vw, 68px); }
+.display .accent { color: var(--blue-text); }
+.lead { margin: 0; font-size: 17px; color: var(--body); max-width: 64ch; }
+.crumbs { font-size: 14px; color: var(--muted); }
+.crumbs a { color: var(--muted); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.tile { position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 150px; padding: 18px; border-radius: 12px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); transition: border-color .15s, transform .15s; }
+.tile:hover { border-color: var(--blue); color: var(--ink); transform: translateY(-2px); }
+.tile.tracked { border: 1.5px solid var(--blue); background: linear-gradient(135deg, var(--blue-soft), transparent 60%), var(--surface); }
+.tile-name { font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: 24px; line-height: 1.05; text-transform: uppercase; padding-right: 42px; overflow-wrap: anywhere; }
+.speed { position: absolute; top: 16px; right: 14px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.speed i { display: block; height: 4px; border-radius: 2px; transform: skewX(-20deg); background: var(--tilebar); }
+.tile.tracked .speed i { background: var(--blue); }
+.speed i:nth-child(1) { width: 30px; } .speed i:nth-child(2) { width: 20px; } .speed i:nth-child(3) { width: 12px; }
+.tile-foot { margin-top: auto; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tile-detail { font-size: 13px; color: var(--body); }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.chip-ok { background: var(--ok-bg); color: var(--ok); }
+.chip-ok::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--ok-dot); }
+.chip-soon { background: var(--rowline); color: var(--body); font-weight: 500; }
+.chip-new { border: 1px solid var(--blue); color: var(--blue-text); }
+
+.choice { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+.choice-card { display: flex; flex-direction: column; gap: 14px; padding: 26px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+.choice-card h2 { font-size: 36px; }
+
+.site-footer { border-top: 1px solid var(--line); }
+.site-footer .container { padding-block: 20px 32px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { .tile { transition: none; } .tile:hover { transform: none; } }
+@media (max-width: 560px) {
+  .brand img { height: 44px; }
+  .stamp { display: none; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .tile { min-height: 110px; padding: 12px; }
+  .tile-name { font-size: 17px; padding-right: 26px; }
+  .tile-detail { display: none; }
+}

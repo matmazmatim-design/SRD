@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+.vercel/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+# wyniki skryptów rankingowych uruchamianych lokalnie
+scripts/*.csv
+scripts/*.json
+*-20??-??-??.csv
+*-20??-??-??.json
