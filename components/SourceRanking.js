@@ -31,7 +31,7 @@ export default function SourceRanking({ ranking }) {
         <span style={{ fontWeight: 600 }}>{r.pozycja}</span>
         <span style={{ fontWeight: rowIsPolish(r) ? 700 : 500 }}>{national ? countryPl(r.zawodnik) : r.zawodnik}</span>
         {!national && <span>{countryPl(r.kraj || r.kod_kraju) || '—'}</span>}
-        <span className="n">{formatNumber(r.punkty, digits)}</span>
+        <span style={center}>{formatNumber(r.punkty, digits)}</span>
         {rules && <span style={{ ...center, fontWeight: 700, fontSize: 16 }}>{q || '—'}</span>}
         {rules && (q
           ? <span className="chip chip-ok" style={center}>{national ? 'Kraj z kwotą' : 'W strefie'}</span>
@@ -65,7 +65,7 @@ export default function SourceRanking({ ranking }) {
       <div className="table-box">
         <div className="rtable" style={{ minWidth: rules ? (national ? 600 : 800) : (national ? 360 : 560) }}>
           <div className="rrow head" style={{ gridTemplateColumns: cols }}>
-            <span>Poz.</span><span>{national ? 'Kraj' : 'Zawodnik'}</span>{!national && <span>Kraj</span>}<span className="n">Pkt</span>
+            <span>Poz.</span><span>{national ? 'Kraj' : 'Zawodnik'}</span>{!national && <span>Kraj</span>}<span style={center}>Pkt</span>
             {rules && <span style={center}>Miejsca na IO</span>}{rules && <span style={center}>Status</span>}
           </div>
           {items.map((it, i) => {

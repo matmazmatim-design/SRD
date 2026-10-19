@@ -6,16 +6,29 @@ import { countryPl } from '../lib/countries';
 
 const CHIP = { ok: 'chip chip-ok', warn: 'chip chip-warn', res: 'chip chip-res', out: 'chip chip-out' };
 
+const STATUS = { ok: 'Zakwalifikowany', warn: 'Na granicy', res: 'Rezerwa', out: 'Poza strefą' };
+const COLS = '48px 64px minmax(0, 1.5fr) minmax(0, 1fr) 96px minmax(0, 1.8fr) 150px';
+const center = { textAlign: 'center', justifySelf: 'center' };
+
+// „Zakwalifikowany – realokacja kwot Oceanii” → „Realokacja kwot Oceanii” (status jest w osobnej kolumnie)
+function pathText(sciezka) {
+  const t = String(sciezka || '');
+  const i = t.indexOf(' – ');
+  if (i > 0 && /^zakwalifik/i.test(t)) { const rest = t.slice(i + 3); return rest.charAt(0).toUpperCase() + rest.slice(1); }
+  return t;
+}
+
 function Row({ r, label, pointsDigits }) {
   const kind = statusKind(r.sciezka);
   return (
-    <div className={'rrow' + (isPolish(r.kraj) ? ' pl' : '')}>
+    <div className={'rrow' + (isPolish(r.kraj) ? ' pl' : '')} style={{ gridTemplateColumns: COLS }}>
       <span style={{ fontWeight: 600 }}>{label}</span>
       <span className="rank">{r.pozycja_rankingu ?? '—'}</span>
-      <span style={{ fontWeight: 500 }}>{r.zawodnik}</span>
+      <span style={{ fontWeight: isPolish(r.kraj) ? 700 : 500 }}>{r.zawodnik}</span>
       <span>{countryPl(r.kraj)}</span>
-      <span className="n">{formatNumber(r.punkty, pointsDigits)}</span>
-      <span className={CHIP[kind]} style={{ justifySelf: 'start' }}>{r.sciezka}</span>
+      <span style={center}>{formatNumber(r.punkty, pointsDigits)}</span>
+      <span style={{ fontSize: 13, color: 'var(--body)' }}>{pathText(r.sciezka)}</span>
+      <span className={CHIP[kind]} style={center}>{STATUS[kind]}</span>
     </div>
   );
 }
@@ -39,9 +52,9 @@ export default function RankingTable({ qualified, reserve, rankingLabel = 'Ranki
         <input id="szukaj-ranking" type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="np. Polska" />
       </label>
       <div className="table-box">
-        <div className="rtable">
-          <div className="rrow head">
-            <span>#</span><span>{rankingLabel}</span><span>Zawodnik</span><span>Kraj</span><span className="n">Pkt</span><span>Ścieżka / status</span>
+        <div className="rtable" style={{ minWidth: 900 }}>
+          <div className="rrow head" style={{ gridTemplateColumns: COLS }}>
+            <span>#</span><span>{rankingLabel}</span><span>Zawodnik</span><span>Kraj</span><span style={center}>Pkt</span><span>Ścieżka</span><span style={center}>Status</span>
           </div>
           {items.map((it, i) =>
             it.type === 'gap'
