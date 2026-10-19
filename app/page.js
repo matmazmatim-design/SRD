@@ -1,7 +1,10 @@
 import Link from 'next/link';
-import { SPORTS } from '../lib/sports';
+import { getSports } from '../lib/data';
 
-export default function HomePage() {
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  const SPORTS = await getSports();
   const tracked = SPORTS.filter(s => s.tracked);
   return (
     <main className="container">
