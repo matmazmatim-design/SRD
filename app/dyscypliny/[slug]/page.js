@@ -48,6 +48,10 @@ export default async function SportPage({ params }) {
   const next = firstUpcoming >= 0 ? terms[firstUpcoming] : null;
   const close = terms.find(t => /zamknięcie rankingów/i.test(t.tytul));
 
+  // Znacznik „Jesteśmy tutaj” stoi przed nagłówkiem roku, jeśli ten rok jeszcze się nie zaczął.
+  const marker = <div className="tl-today"><span>{formatDatePl(today)}</span><i aria-hidden="true" /><em>Jesteśmy tutaj</em></div>;
+  const todayBeforeYear = (year, prevYear) => Boolean(year && year !== prevYear && today.slice(0, 4) < year);
+
   const cards = events.length ? events : children.length ? [] : [{ slug: null, plec: 'K' }, { slug: null, plec: 'M' }];
 
   return (
@@ -145,10 +149,9 @@ export default async function SportPage({ params }) {
                 const [label, color] = TYP[t.typ] || ['', '#8A949F'];
                 return (
                   <li key={t.kolejnosc}>
+                    {i === firstUpcoming && todayBeforeYear(year, prevYear) && marker}
                     {year && year !== prevYear && <div className="tl-year">{year}</div>}
-                    {i === firstUpcoming && (
-                      <div className="tl-today"><span>{formatDatePl(today)}</span><i aria-hidden="true" /><em>Jesteśmy tutaj</em></div>
-                    )}
+                    {i === firstUpcoming && !todayBeforeYear(year, prevYear) && marker}
                     <div className={'tl-item' + (past ? ' past' : '')}>
                       <span className="tl-date">{t.etykieta_daty}</span>
                       <span className="tl-axis" aria-hidden="true"><span className="tl-dot" style={past ? { background: 'var(--surface)', border: `2px solid ${color}` } : { background: color }} /></span>
