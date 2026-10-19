@@ -25,6 +25,17 @@ W Vercelu ustaw zmienne `NEXT_PUBLIC_SUPABASE_URL` i `NEXT_PUBLIC_SUPABASE_ANON_
 - `public/` – logo SRD na ciemne i jasne tło
 - `scripts/uci-ranking.mjs` – pobieranie rankingów UCI (`npm run ranking:uci -- --inspect`)
 
+## Baza danych (Supabase)
+
+Skrypty SQL są w `supabase/migrations/`. Uruchom je po kolei w Supabase → SQL Editor:
+
+1. `0001_schemat.sql` – tabele i zasady dostępu (wszyscy czytają, zapisują tylko admini panelu).
+2. `0002_dane_startowe.sql` – 37 dyscyplin, konkurencje, kalendarz triathlonu, symulacje golfa i triathlonu.
+   Można go uruchomić ponownie – najpierw czyści dane startowe.
+
+Najważniejsze tabele: `dyscypliny`, `konkurencje`, `zrodla_rankingow` → `notowania` → `wiersze_notowan`,
+`symulacje` → `wiersze_symulacji`, `kwalifikacje` (ręczne wpisy ze ścieżką), `terminy`, `admini`.
+
 ## Motyw
 
 Kolory są zmiennymi w `app/globals.css`. Tryb jasny włącza `data-theme="light"` na `<html>`;
