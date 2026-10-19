@@ -14,7 +14,22 @@ Next.js (App Router), hosting na Vercelu, dane w Supabase.
 ## Wdrożenie
 
 Każde wypchnięcie do gałęzi `main` wdraża się automatycznie na Vercelu.
-W Vercelu ustaw zmienne `NEXT_PUBLIC_SUPABASE_URL` i `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+Zmienne w Vercelu (Settings → Environment Variables):
+
+| Zmienna | Skąd | Do czego |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Data API, sam adres `https://xxxx.supabase.co` | odczyt danych |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → API Keys → Publishable key | odczyt danych, logowanie do panelu |
+| `SUPABASE_SECRET_KEY` | Supabase → API Keys → Secret key | zapis rankingów przez serwer (tylko serwer!) |
+| `CRON_SECRET` | dowolny długi losowy ciąg | zabezpieczenie codziennego odświeżania |
+
+## Odświeżanie rankingów
+
+- `/api/odswiez` – pobiera wszystkie aktywne źródła typu `uci` i zapisuje notowanie.
+  Vercel Cron wywołuje go codziennie (`vercel.json`), panel – przyciskiem „Odśwież teraz”.
+- `/api/wklejka` – zapis rankingu wklejonego w panelu (dowolna strona z tabelą).
+- Panel → Źródła danych: dodanie rankingu UCI przez wklejenie „Copy as cURL” z DevTools.
 
 ## Struktura
 

@@ -2,8 +2,23 @@ import Link from 'next/link';
 import './globals.css';
 import ThemeToggle from '../components/ThemeToggle';
 import SiteNav from '../components/SiteNav';
+import { getLastUpdate } from '../lib/data';
+import { formatDatePl } from '../lib/compute';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://sportowyrytmdnia.vercel.app';
+
+export const revalidate = 3600;
 
 export const metadata = {
+  metadataBase: new URL(SITE_URL),
+  openGraph: {
+    type: 'website',
+    locale: 'pl_PL',
+    siteName: 'Sportowy Rytm Dnia',
+    title: 'Sportowy Rytm Dnia – Polacy w drodze do LA28',
+    description: 'Status kwalifikacji polskich sportowców do igrzysk w Los Angeles: rankingi, linie kwalifikacji i terminy.'
+  },
+  twitter: { card: 'summary_large_image' },
   title: {
     default: 'Sportowy Rytm Dnia',
     template: '%s · Sportowy Rytm Dnia'
@@ -14,7 +29,8 @@ export const metadata = {
 // Ustawia tryb przed pierwszym malowaniem strony, żeby nie mignęła w złym kolorze.
 const themeScript = `(function(){try{var t=localStorage.getItem('srd-theme');document.documentElement.dataset.theme=(t==='light'||t==='dark')?t:'dark';}catch(e){document.documentElement.dataset.theme='dark';}})();`;
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const stan = await getLastUpdate();
   return (
     <html lang="pl" data-theme="dark" suppressHydrationWarning>
       <head>
@@ -32,7 +48,7 @@ export default function RootLayout({ children }) {
             </Link>
             <SiteNav />
             <div className="header-side">
-              <span className="stamp">Stan na 19.10.2026</span>
+              {stan && <span className="stamp">Stan na {formatDatePl(stan)}</span>}
               <ThemeToggle />
             </div>
           </div>

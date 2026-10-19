@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import Sources from './Sources';
 
 const PATHS = {
   triathlon: ['Gospodarz', 'MŚ sztafet 2026', 'MŚ sztafet 2027', 'Ranking sztafet (MROQR)', 'Ranking IOQR', 'Nowa flaga – igrzyska kontynentalne', 'Nowa flaga – World Triathlon Ranking', 'Zaproszenie (uniwersalność)', 'Realokacja'],
@@ -193,6 +194,7 @@ function Editor({ session }) {
 export default function PanelPage() {
   const [session, setSession] = useState(undefined);
   const [isAdmin, setIsAdmin] = useState(null);
+  const [tab, setTab] = useState('kwalifikacje');
 
   useEffect(() => {
     if (!supabase) return;
@@ -223,7 +225,19 @@ export default function PanelPage() {
           <p style={{ margin: 0, color: 'var(--body)' }}>Identyfikator konta: <code style={{ userSelect: 'all' }}>{session.user.id}</code></p>
         </div>
       )}
-      {session && isAdmin && <Editor session={session} />}
+      {session && isAdmin && (
+        <>
+          <div className="seg" role="tablist" aria-label="Sekcje panelu">
+            {[['kwalifikacje', 'Kwalifikacje'], ['zrodla', 'Źródła danych']].map(([id, label]) => (
+              <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
+                style={{ font: 'inherit', minHeight: 40, padding: '0 18px', borderRadius: 999, border: 0, cursor: 'pointer', fontWeight: tab === id ? 600 : 500, background: tab === id ? 'var(--blue)' : 'transparent', color: tab === id ? '#000000' : 'var(--body)' }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          {tab === 'kwalifikacje' ? <Editor session={session} /> : <Sources session={session} />}
+        </>
+      )}
     </main>
   );
 }
