@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { condenseRanking, rowIsPolish, formatNumber, formatDatePl, quotaFor, lastQuotaPosition } from '../lib/compute';
+import { countryPl } from '../lib/countries';
 
 const SOURCE_NAME = { uci: 'UCI', world_triathlon: 'World Triathlon', owgr: 'OWGR' };
 
@@ -15,8 +16,9 @@ export default function SourceRanking({ ranking }) {
   const rules = ranking.zasady && ranking.zasady.progi?.length ? ranking.zasady : null;
   const line = lastQuotaPosition(rules);
   const items = full ? ranking.rows.map(r => ({ type: 'row', row: r })) : condenseRanking(ranking.rows, { line });
-  const name = national ? 'minmax(0, 1.4fr)' : 'minmax(0, 2fr) minmax(0, 1.2fr)';
-  const cols = `64px ${name} 96px` + (rules ? ' 104px minmax(0, 1.4fr)' : '');
+  const name = national ? 'minmax(0, 1fr)' : 'minmax(0, 2fr) minmax(0, 1.2fr)';
+  const cols = `56px ${name} 88px` + (rules ? ' 120px 190px' : '');
+  const center = { textAlign: 'center', justifySelf: 'center' };
   const digits = ranking.rows.some(r => r.punkty !== null && !Number.isInteger(Number(r.punkty))) ? 2 : 0;
   const source = SOURCE_NAME[ranking.typ] || 'strona źródła';
   const totalPlaces = rules ? rules.progi.reduce((s, t) => s + (t.do - t.od + 1) * t.miejsc, 0) : 0;
@@ -27,13 +29,13 @@ export default function SourceRanking({ ranking }) {
     return (
       <div className={'rrow' + (rowIsPolish(r) ? ' pl' : '')} style={{ gridTemplateColumns: cols }}>
         <span style={{ fontWeight: 600 }}>{r.pozycja}</span>
-        <span style={{ fontWeight: rowIsPolish(r) ? 700 : 500 }}>{r.zawodnik}</span>
-        {!national && <span>{r.kraj || r.kod_kraju || '—'}</span>}
+        <span style={{ fontWeight: rowIsPolish(r) ? 700 : 500 }}>{national ? countryPl(r.zawodnik) : r.zawodnik}</span>
+        {!national && <span>{countryPl(r.kraj || r.kod_kraju) || '—'}</span>}
         <span className="n">{formatNumber(r.punkty, digits)}</span>
-        {rules && <span className="n" style={{ fontWeight: 600 }}>{q || '—'}</span>}
+        {rules && <span style={{ ...center, fontWeight: 700, fontSize: 16 }}>{q || '—'}</span>}
         {rules && (q
-          ? <span className="chip chip-ok" style={{ justifySelf: 'start' }}>{national ? 'Kraj z kwotą' : 'W strefie'}</span>
-          : <span className="chip chip-out" style={{ justifySelf: 'start' }}>Poza strefą rankingu</span>)}
+          ? <span className="chip chip-ok" style={center}>{national ? 'Kraj z kwotą' : 'W strefie'}</span>
+          : <span className="chip chip-out" style={center}>Poza strefą</span>)}
       </div>
     );
   }
@@ -61,10 +63,10 @@ export default function SourceRanking({ ranking }) {
         </div>
       )}
       <div className="table-box">
-        <div className="rtable" style={{ minWidth: rules ? (national ? 560 : 760) : (national ? 360 : 560) }}>
+        <div className="rtable" style={{ minWidth: rules ? (national ? 600 : 800) : (national ? 360 : 560) }}>
           <div className="rrow head" style={{ gridTemplateColumns: cols }}>
             <span>Poz.</span><span>{national ? 'Kraj' : 'Zawodnik'}</span>{!national && <span>Kraj</span>}<span className="n">Pkt</span>
-            {rules && <span className="n">Miejsca na IO</span>}{rules && <span>Status</span>}
+            {rules && <span style={center}>Miejsca na IO</span>}{rules && <span style={center}>Status</span>}
           </div>
           {items.map((it, i) => {
             if (it.type === 'gap') return <div key={'g' + i} className="rgap">· · · miejsca {it.from}–{it.to} · · ·</div>;

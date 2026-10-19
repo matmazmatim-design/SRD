@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { condense, isPolish, statusKind, formatNumber } from '../lib/compute';
+import { countryPl } from '../lib/countries';
 
 const CHIP = { ok: 'chip chip-ok', warn: 'chip chip-warn', res: 'chip chip-res', out: 'chip chip-out' };
 
@@ -12,7 +13,7 @@ function Row({ r, label, pointsDigits }) {
       <span style={{ fontWeight: 600 }}>{label}</span>
       <span className="rank">{r.pozycja_rankingu ?? '—'}</span>
       <span style={{ fontWeight: 500 }}>{r.zawodnik}</span>
-      <span>{r.kraj}</span>
+      <span>{countryPl(r.kraj)}</span>
       <span className="n">{formatNumber(r.punkty, pointsDigits)}</span>
       <span className={CHIP[kind]} style={{ justifySelf: 'start' }}>{r.sciezka}</span>
     </div>
