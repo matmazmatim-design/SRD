@@ -24,7 +24,7 @@ export default function SportTiles({ sports }) {
     return sports
       .filter(s => filter === 'all' || (filter === 'tracked' && s.tracked) || (filter === 'new' && s.badge))
       .filter(s => !q || s.name.toLowerCase().includes(q))
-      .sort((a, b) => (Number(!!b.tracked) - Number(!!a.tracked)) || a.name.localeCompare(b.name, 'pl'));
+      .sort((a, b) => (Number(!!b.tracked) - Number(!!a.tracked)) || (Number(!!b.hasRanking) - Number(!!a.hasRanking)) || a.name.localeCompare(b.name, 'pl'));
   }, [sports, filter, query]);
 
   return (
@@ -70,11 +70,11 @@ export default function SportTiles({ sports }) {
       ) : (
         <div className="tiles">
           {list.map(s => (
-            <Link key={s.slug} href={`/dyscypliny/${s.slug}`} className={'tile' + (s.tracked ? ' tracked' : '')}>
+            <Link key={s.slug} href={`/dyscypliny/${s.slug}`} className={'tile' + (s.tracked || s.hasRanking ? ' tracked' : '')}>
               <span className="speed" aria-hidden="true"><i /><i /><i /></span>
               <span className="tile-name">{s.name}</span>
               <span className="tile-foot">
-                {s.tracked ? <span className="chip chip-ok">Polak w strefie</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
+                {s.tracked ? <span className="chip chip-ok">Polak w strefie</span> : s.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
                 {s.badge && <span className="chip chip-new">{s.badge}</span>}
               </span>
               {s.detail && <span className="tile-detail">{s.detail}</span>}

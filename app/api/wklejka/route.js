@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { saveSnapshot } from '../../../lib/refresh';
 import { requireAdmin, missingConfig, supabaseAdmin } from '../../../lib/supabaseServer';
 
@@ -31,6 +32,7 @@ export async function POST(request) {
 
   try {
     const id = await saveSnapshot(zrodloId, clean, { stanNa: /^\d{4}-\d{2}-\d{2}$/.test(stanNa || '') ? stanNa : undefined });
+    revalidatePath('/', 'layout');
     return NextResponse.json({ ok: true, notowanieId: id, rows: clean.length });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });

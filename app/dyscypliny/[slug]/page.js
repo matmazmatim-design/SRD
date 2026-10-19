@@ -62,7 +62,9 @@ export default async function SportPage({ params }) {
         <h2 className="eyebrow" style={{ margin: 0 }}>Konkurencje w Los Angeles</h2>
         <div className="choice">
           {cards.map((e, i) => {
-            const ready = e.slug && e.hasSimulation;
+            const ready = e.slug && (e.hasSimulation || e.rankings?.length > 0);
+            const rk = e.rankings?.[0];
+            const rkPl = rk?.polish?.[0];
             const when = e.slug ? eventWhen(e) : null;
             const inner = (
               <>
@@ -83,6 +85,12 @@ export default async function SportPage({ params }) {
                         <span className={CHIP[statusKind(p.sciezka)]}>{p.sciezka.split(' – ')[0]}</span>
                       </span>
                     ))}
+                  </span>
+                )}
+                {!e.poles?.length && rk && (
+                  <span style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderTop: '1px solid var(--line)', fontSize: 15 }}>
+                    <strong>{rk.rodzaj === 'krajowy' ? 'Polska w rankingu krajów' : (rkPl?.zawodnik || 'Polacy w rankingu')}</strong>
+                    <span className={rkPl ? 'chip chip-res' : 'chip chip-out'}>{rkPl ? `${rkPl.pozycja}. miejsce` : 'poza rankingiem'}</span>
                   </span>
                 )}
                 {ready && <span className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: 'auto' }}>Zobacz status kwalifikacji ›</span>}

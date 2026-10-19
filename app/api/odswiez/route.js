@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { refreshAll } from '../../../lib/refresh';
 import { requireAdmin, missingConfig } from '../../../lib/supabaseServer';
 
@@ -15,6 +16,7 @@ export async function GET(request) {
   }
   try {
     const results = await refreshAll();
+    revalidatePath('/', 'layout');
     return NextResponse.json({ ok: true, results });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });
@@ -27,9 +29,14 @@ export async function POST(request) {
   if (cfg) return NextResponse.json({ error: cfg }, { status: 500 });
   const user = await requireAdmin(request);
   if (!user) return NextResponse.json({ error: 'Zaloguj się jako administrator panelu.' }, { status: 401 });
-  const { slug } = await request.json().catch(() => ({}));
+  const { slug, revalidateOnly } = await request.json().catch(() => ({}));
+  if (revalidateOnly) {
+    revalidatePath('/', 'layout');
+    return NextResponse.json({ ok: true, revalidated: true });
+  }
   try {
     const results = await refreshAll({ slug });
+    revalidatePath('/', 'layout');
     return NextResponse.json({ ok: true, results });
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500 });

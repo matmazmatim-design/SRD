@@ -16,6 +16,12 @@ function fmt(iso) {
   const d = new Date(iso);
   return d.toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
+async function revalidate(token) {
+  try { await fetch('/api/odswiez', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify({ revalidateOnly: true }) }); } catch {}
+}
+const PLEC = { K: 'kobiety', M: 'mężczyźni', X: 'mieszana' };
+function eventLabel(e) { return `${e.dyscypliny?.nazwa || ''} – ${e.nazwa}`; }
+
 function isPl(r) { return /^(pol|polska|poland)$/i.test(String(r.kod_kraju || '').trim()) || /^(polska|poland)$/i.test(String(r.kraj || '').trim()); }
 
 function PasteBox({ source, token, onSaved }) {
@@ -66,7 +72,7 @@ function PasteBox({ source, token, onSaved }) {
   );
 }
 
-function SourceCard({ source, last, lastOk, token, onChange }) {
+function SourceCard({ source, last, lastOk, token, onChange, events }) {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -93,6 +99,15 @@ function SourceCard({ source, last, lastOk, token, onChange }) {
     setPreview({ top: top || [], pl: (all || []).filter(isPl) });
   }
 
+  async function updateLink(patch) {
+    setMsg({ ok: '', err: '' });
+    const { error } = await supabase.from('zrodla_rankingow').update(patch).eq('id', source.id);
+    if (error) return setMsg({ ok: '', err: 'Nie zapisano: ' + error.message });
+    await revalidate(token);
+    setMsg({ ok: 'Zapisano. Strona jest już zaktualizowana.', err: '' });
+    onChange();
+  }
+
   const failed = last && last.status === 'blad';
   return (
     <article className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -106,6 +121,18 @@ function SourceCard({ source, last, lastOk, token, onChange }) {
       <div style={{ fontSize: 14, color: 'var(--body)' }}>
         {lastOk ? <>Ostatnie dane: stan na <strong>{lastOk.stan_na}</strong>, {lastOk.liczba_wierszy} wierszy (pobrano {fmt(lastOk.pobrano)})</> : 'Jeszcze nie pobrano żadnego notowania.'}
         {failed && <div className="msg-err" style={{ marginTop: 4, fontWeight: 500 }}>{fmt(last.pobrano)}: {last.komunikat}</div>}
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
+        <label className="field" htmlFor={'ev-' + source.id} style={{ flex: '1 1 280px' }}>Pokazuj na stronie konkurencji
+          <select id={'ev-' + source.id} value={source.konkurencja_id ?? ''} onChange={e => updateLink({ konkurencja_id: e.target.value ? Number(e.target.value) : null })}>
+            <option value="">— nie pokazuj publicznie —</option>
+            {events.map(e => <option key={e.id} value={e.id}>{eventLabel(e)}</option>)}
+          </select>
+        </label>
+        <div className="pills" role="group" aria-label="Rodzaj rankingu">
+          <button type="button" className="pill" aria-pressed={source.rodzaj !== 'krajowy'} onClick={() => updateLink({ rodzaj: 'indywidualny' })}>Ranking zawodników</button>
+          <button type="button" className="pill" aria-pressed={source.rodzaj === 'krajowy'} onClick={() => updateLink({ rodzaj: 'krajowy' })}>Ranking krajów</button>
+        </div>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {source.typ === 'uci' && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
@@ -185,15 +212,68 @@ function AddSource({ onAdded }) {
   );
 }
 
+function AddEvent({ sports, token, onAdded }) {
+  const [sport, setSport] = useState('');
+  const [plec, setPlec] = useState('M');
+  const [name, setName] = useState('');
+  const [msg, setMsg] = useState({ ok: '', err: '' });
+
+  async function add(e) {
+    e.preventDefault();
+    setMsg({ ok: '', err: '' });
+    if (!sport) return setMsg({ ok: '', err: 'Wybierz dyscyplinę.' });
+    if (!name.trim()) return setMsg({ ok: '', err: 'Wpisz nazwę konkurencji.' });
+    const { error } = await supabase.from('konkurencje').insert({ dyscyplina_id: Number(sport), slug: slugify(name), nazwa: name.trim(), plec });
+    if (error) return setMsg({ ok: '', err: error.message.includes('duplicate') ? 'Taka konkurencja już istnieje w tej dyscyplinie.' : 'Nie dodano: ' + error.message });
+    await revalidate(token);
+    setName('');
+    setMsg({ ok: 'Dodano konkurencję. Możesz do niej przypiąć ranking.', err: '' });
+    onAdded();
+  }
+
+  return (
+    <form onSubmit={add} className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <h2 className="h2" style={{ fontSize: 24 }}>Dodaj konkurencję</h2>
+      <div className="form-grid">
+        <label className="field" htmlFor="ev-sport">Dyscyplina
+          <select id="ev-sport" value={sport} onChange={e => setSport(e.target.value)}>
+            <option value="">— wybierz —</option>
+            {sports.map(s => <option key={s.id} value={s.id}>{s.nazwa}</option>)}
+          </select>
+        </label>
+        <label className="field" htmlFor="ev-name">Nazwa konkurencji
+          <input id="ev-name" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="np. Kolarstwo szosowe – wyścig ze startu wspólnego kobiet" />
+        </label>
+      </div>
+      <div className="pills" role="group" aria-label="Płeć">
+        {[['K', 'Kobiety'], ['M', 'Mężczyźni'], ['X', 'Mieszana']].map(([v, l]) => (
+          <button key={v} type="button" className="pill" aria-pressed={plec === v} onClick={() => setPlec(v)}>{l}</button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <button type="submit" className="btn btn-primary">Dodaj konkurencję</button>
+        {msg.ok && <span className="msg-ok" role="status">{msg.ok}</span>}
+        {msg.err && <span className="msg-err" role="alert">{msg.err}</span>}
+      </div>
+    </form>
+  );
+}
+
 export default function Sources({ session }) {
   const [sources, setSources] = useState([]);
   const [snaps, setSnaps] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [sports, setSports] = useState([]);
 
   async function load() {
-    const [{ data: s }, { data: n }] = await Promise.all([
-      supabase.from('zrodla_rankingow').select('id, slug, nazwa, typ, parametry, adres_strony, aktywne').order('nazwa'),
-      supabase.from('notowania').select('id, zrodlo_id, stan_na, pobrano, liczba_wierszy, status, komunikat').order('pobrano', { ascending: false }).limit(200)
+    const [{ data: s }, { data: n }, { data: ev }, { data: sp }] = await Promise.all([
+      supabase.from('zrodla_rankingow').select('id, slug, nazwa, typ, rodzaj, parametry, adres_strony, aktywne, konkurencja_id').order('nazwa'),
+      supabase.from('notowania').select('id, zrodlo_id, stan_na, pobrano, liczba_wierszy, status, komunikat').order('pobrano', { ascending: false }).limit(200),
+      supabase.from('konkurencje').select('id, nazwa, plec, dyscypliny(nazwa)').order('nazwa'),
+      supabase.from('dyscypliny').select('id, nazwa').order('nazwa')
     ]);
+    setEvents((ev || []).sort((a, b) => eventLabel(a).localeCompare(eventLabel(b), 'pl')));
+    setSports(sp || []);
     setSources(s || []);
     setSnaps(n || []);
   }
@@ -207,9 +287,10 @@ export default function Sources({ session }) {
       {sources.length === 0 && <p className="panel" style={{ color: 'var(--muted)' }}>Brak źródeł. Dodaj pierwsze poniżej.</p>}
       {sources.map(s => {
         const mine = snaps.filter(n => n.zrodlo_id === s.id);
-        return <SourceCard key={s.id} source={s} last={mine[0]} lastOk={mine.find(n => n.status === 'ok')} token={session.access_token} onChange={load} />;
+        return <SourceCard key={s.id} source={s} last={mine[0]} lastOk={mine.find(n => n.status === 'ok')} token={session.access_token} onChange={load} events={events} />;
       })}
       <AddSource onAdded={load} />
+      <AddEvent sports={sports} token={session.access_token} onAdded={load} />
     </div>
   );
 }

@@ -88,7 +88,8 @@ function Editor({ session }) {
     setBusy(false);
     if (error) return setMsg({ ok: '', err: 'Nie zapisano: ' + error.message });
     setForm(f => ({ ...f, name: '', custom: '' }));
-    setMsg({ ok: 'Dodano. Strona pokaże zmianę w ciągu kilku minut.', err: '' });
+    fetch('/api/odswiez', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + session.access_token }, body: JSON.stringify({ revalidateOnly: true }) }).catch(() => {});
+    setMsg({ ok: 'Dodano. Strona już pokazuje zmianę.', err: '' });
     loadSport(sel);
   }
 
@@ -96,6 +97,7 @@ function Editor({ session }) {
     const { error } = await supabase.from('kwalifikacje').delete().eq('id', id);
     if (error) return setMsg({ ok: '', err: 'Nie usunięto: ' + error.message });
     setEntries(list => list.filter(x => x.id !== id));
+    fetch('/api/odswiez', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + session.access_token }, body: JSON.stringify({ revalidateOnly: true }) }).catch(() => {});
   }
 
   const sportName = sports.find(s => s.slug === sel)?.nazwa || sel;

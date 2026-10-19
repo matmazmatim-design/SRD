@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import RankingTable from '../../../../components/RankingTable';
+import SourceRanking from '../../../../components/SourceRanking';
 import { getEventPage } from '../../../../lib/data';
 import { summarize, statusKind, isPolish, formatNumber, formatDatePl, STATE_LABEL } from '../../../../lib/compute';
 
@@ -20,7 +21,9 @@ export default async function EventPage({ params }) {
   const { slug, konkurencja } = await params;
   const data = await getEventPage(slug, konkurencja);
   if (!data) notFound();
-  const { sport, event, siblings, simulation, rows } = data;
+  const { sport, event, siblings, simulation, rows, rankings = [] } = data;
+  const mainRanking = rankings[0] || null;
+  const bestPl = mainRanking?.polish?.[0] || null;
   const rankingLabel = RANKING_LABEL[slug] || 'Ranking';
   const s = summarize(rows);
   const poles = s.lists.polacy.length ? s.lists.polacy : rows.filter(r => isPolish(r.kraj));
@@ -57,6 +60,18 @@ export default async function EventPage({ params }) {
               </div>
               <span className={CHIP[s.state]} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{STATE_LABEL[s.state]}</span>
             </>
+          ) : mainRanking ? (
+            bestPl ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <span className="num" style={{ fontSize: 68 }}>{bestPl.pozycja}.</span>
+                  <span style={{ fontSize: 17, color: 'var(--muted)' }}>{mainRanking.rodzaj === 'krajowy' ? 'miejsce w rankingu krajów' : `miejsce – ${bestPl.zawodnik}`}</span>
+                </div>
+                <span style={{ fontSize: 14, color: 'var(--body)' }}>{formatNumber(bestPl.punkty, 0)} pkt · stan na {formatDatePl(mainRanking.stanNa)}</span>
+              </>
+            ) : (
+              <span className="chip chip-out" style={{ alignSelf: 'flex-start' }}>Polski nie ma w rankingu</span>
+            )
           ) : (
             <span className="chip chip-res" style={{ alignSelf: 'flex-start' }}>Symulacja w przygotowaniu</span>
           )}
@@ -140,11 +155,13 @@ export default async function EventPage({ params }) {
             </details>
           )}
         </section>
-      ) : (
+      ) : rankings.length === 0 ? (
         <section className="panel" style={{ textAlign: 'center', color: 'var(--muted)' }}>
           Symulację tej konkurencji dodamy wkrótce. Do tego czasu sprawdź stronę dyscypliny z terminami kwalifikacji.
         </section>
-      )}
+      ) : null}
+
+      {rankings.map(r => <SourceRanking key={r.id} ranking={r} />)}
     </main>
   );
 }
