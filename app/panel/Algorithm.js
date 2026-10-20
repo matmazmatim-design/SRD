@@ -207,7 +207,7 @@ export default function Algorithm({ session }) {
   async function load() {
     const { data, error } = await supabase.from('konkurencje').select('id, slug, nazwa, plec, algorytm, dyscypliny(nazwa)').not('algorytm', 'is', null).order('plec');
     if (error) { setErr('Uruchom w Supabase migrację 0008_algorytm_triathlonu.sql. (' + error.message + ')'); setEvents([]); return; }
-    setEvents(data || []);
+    setEvents((data || []).filter(e => e.algorytm?.typ === 'triathlon-la28'));
     const { data: src } = await supabase.from('zrodla_rankingow').select('slug, nazwa').order('nazwa');
     setSources(src || []);
     const { data: wy } = await supabase.from('wyniki_igrzysk').select('plec, zawody, miejsce, zawodnik, kraj').eq('dyscyplina', 'triathlon').order('miejsce');

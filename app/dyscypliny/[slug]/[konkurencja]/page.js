@@ -2,13 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import RankingTable from '../../../../components/RankingTable';
 import SourceRanking from '../../../../components/SourceRanking';
+import MixedTeams from '../../../../components/MixedTeams';
 import { getEventPage } from '../../../../lib/data';
 import { countryPl } from '../../../../lib/countries';
 import { summarize, isPolish, formatNumber, formatDatePl, QUAL, rowKind, quotaKind, quotaFor, gapToLine, lastQuotaPosition } from '../../../../lib/compute';
 
 export const revalidate = 300;
 
-const RANKING_LABEL = { golf: 'OWGR', triathlon: 'IOQR' };
+const RANKING_LABEL = { golf: 'OGR', triathlon: 'IOQR' };
 const PLEC = { K: 'Kobiety', M: 'Mężczyźni', X: 'Mieszana' };
 
 export async function generateMetadata({ params }) {
@@ -27,7 +28,8 @@ export default async function EventPage({ params }) {
   const { slug, konkurencja } = await params;
   const data = await getEventPage(slug, konkurencja);
   if (!data) notFound();
-  const { sport, parent, event, siblings, simulation, rows, rankings = [] } = data;
+  const { sport, parent, event, siblings, simulation, rows, rankings = [], omtr = null } = data;
+  const plTeam = omtr?.find(r => r.noc === 'POL') || null;
   const mainRanking = rankings[0] || null;
   const bestPl = mainRanking?.polish?.[0] || null;
   const rankingLabel = RANKING_LABEL[slug] || 'Ranking';
@@ -60,7 +62,18 @@ export default async function EventPage({ params }) {
         </div>
         <div className="side panel" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <span className="eyebrow">Polska dziś</span>
-          {simulation ? (
+          {simulation?.mixed ? (
+            plTeam ? (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                  <span className="num" style={{ fontSize: 68 }}>{plTeam.omtr}.</span>
+                  <span style={{ fontSize: 17, color: 'var(--muted)' }}>miejsce w rankingu krajów (OMTR)</span>
+                </div>
+                <span className={QUAL[plTeam.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{plTeam.status === 'res' ? (plTeam.eligible ? 'Rezerwa' : 'Bez drużyny') : QUAL[plTeam.status].label}</span>
+                <span style={{ fontSize: 14, color: 'var(--body)' }}>{plTeam.sciezka}. Mężczyzna: {plTeam.mezczyzna?.zawodnik || 'brak na liście'} · kobieta: {plTeam.kobieta?.zawodnik || 'brak na liście'}.</span>
+              </>
+            ) : <span className="chip chip-res" style={{ alignSelf: 'flex-start' }}>Polski nie ma w rankingu</span>
+          ) : simulation ? (
             <>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                 <span className="num" style={{ fontSize: 68 }}>{s.polesIn.length}</span>
@@ -114,7 +127,7 @@ export default async function EventPage({ params }) {
               const onReserve = s.lists.rezerwa.find(r => r.zawodnik === p.zawodnik);
               const margin = onList ? s.qualifiedCount - onList.lp : 0;
               const foot = onList
-                ? `${onList.lp}. miejsce na liście olimpijskiej · zapas: ${margin} ${margin === 1 ? 'miejsce' : 'miejsc'} nad linią`
+                ? <>{onList.lp}. miejsce na liście olimpijskiej<br />Zapas: {margin} {margin === 1 ? 'miejsce' : margin % 10 >= 2 && margin % 10 <= 4 && (margin % 100 < 12 || margin % 100 > 14) ? 'miejsca' : 'miejsc'} nad linią</>
                 : onReserve
                   ? `${onReserve.lp}. miejsce na liście rezerwowej`
                   : 'Poza listą olimpijską';
@@ -157,7 +170,13 @@ export default async function EventPage({ params }) {
         </section>
       )}
 
-      {simulation ? (
+      {simulation?.mixed ? (
+        <section className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h2 className="h2">Ranking krajów (OMTR)</h2>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--muted)', maxWidth: '72ch' }}>Miejsca dostaje {simulation.teams} krajów z najlepszym zawodnikiem w OGR (kobiet lub mężczyzn), które mają na listach olimpijskich i kobietę, i mężczyznę. Gospodarz (USA) ma miejsce zagwarantowane.</p>
+          <MixedTeams omtr={omtr || []} teams={simulation.teams} />
+        </section>
+      ) : simulation ? (
         <section className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <h2 className="h2">Lista olimpijska</h2>
           <p style={{ margin: 0, fontSize: 14, color: 'var(--muted)' }}>Kolejność z symulacji przepisów kwalifikacji na aktualnym rankingu. Wiersze Polaków są podświetlone.</p>
