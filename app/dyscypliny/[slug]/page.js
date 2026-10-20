@@ -45,7 +45,8 @@ export default async function SportPage({ params }) {
   const isPast = t => (t.data_do || t.data_od) && (t.data_do || t.data_od) < today;
   const firstUpcoming = terms.findIndex(t => !isPast(t));
   const next = firstUpcoming >= 0 ? terms[firstUpcoming] : null;
-  const close = terms.find(t => /zamknięcie rankingów/i.test(t.tytul));
+  const closes = terms.filter(t => /zamknięcie rankingów/i.test(t.tytul) && t.data_od && t.data_od >= today);
+  const usedTypes = new Set(terms.map(t => t.typ));
 
   // Znacznik „Jesteśmy tutaj” stoi przed nagłówkiem roku, jeśli ten rok jeszcze się nie zaczął.
   const marker = <div className="tl-today"><span>{formatDatePl(today)}</span><i aria-hidden="true" /><em>Jesteśmy tutaj</em></div>;
@@ -140,7 +141,7 @@ export default async function SportPage({ params }) {
           <div className="grow panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <h2 className="h2" style={{ fontSize: 30 }}>Kalendarz kwalifikacji</h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 14px', fontSize: 12, color: 'var(--body)' }}>
-              {Object.values(TYP).map(([label, color]) => (
+              {Object.entries(TYP).filter(([k]) => usedTypes.has(k)).map(([, [label, color]]) => (
                 <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: '50%', background: color }} aria-hidden="true" />{label}</span>
               ))}
             </div>
@@ -178,13 +179,13 @@ export default async function SportPage({ params }) {
                 <span className="muted-on-dark" style={{ fontSize: 14 }}>{next.etykieta_daty}</span>
               </div>
             )}
-            {close?.data_od && close.data_od >= today && (
-              <div className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span className="eyebrow">Zamknięcie rankingów</span>
+            {closes.map(close => (
+              <div key={close.kolejnosc} className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span className="eyebrow">{close.tytul}</span>
                 <span className="num" style={{ fontSize: 40 }}>za {daysBetween(today, close.data_od)} dni</span>
                 <span style={{ fontSize: 14, color: 'var(--body)' }}>{close.etykieta_daty}. Liczy się wszystko, co Polacy zdobędą do tego dnia.</span>
               </div>
-            )}
+            ))}
           </aside>
         </section>
       )}
