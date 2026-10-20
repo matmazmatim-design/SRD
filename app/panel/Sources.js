@@ -6,7 +6,7 @@ import { paramsFromCurl } from '../../lib/uci';
 import { parsePastedTable } from '../../lib/paste';
 import { progiToText, textToProgi } from '../../lib/compute';
 
-const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon – plik XLS (automatycznie)', owgr: 'OWGR', wklejka: 'Wklejka' };
+const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon – plik XLS (automatycznie)', owgr: 'OWGR (automatycznie)', wklejka: 'Wklejka' };
 const WT_LINK = /^https:\/\/([a-z0-9-]+\.)*triathlon\.org\//i;
 
 function slugify(s) {
@@ -188,7 +188,7 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
         </form>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {(source.typ === 'uci' || source.typ === 'world_triathlon') && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
+        {(source.typ === 'uci' || source.typ === 'world_triathlon' || source.typ === 'owgr') && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
         <button type="button" className="btn btn-ghost" onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? 'Zamknij wklejkę' : 'Wklej ranking'}</button>
         {lastOk && <button type="button" className="btn btn-ghost" onClick={loadPreview}>Podgląd danych</button>}
       </div>
