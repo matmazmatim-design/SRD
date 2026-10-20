@@ -1,0 +1,62 @@
+-- Igrzyska Azjatyckie 2026 (Gamagori, 20.09.2026) – pełne wyniki z eksportu triathlon.org
+-- (programy 677343 – mężczyźni, 677344 – kobiety). Tylko sklasyfikowani; DNF i zdublowani pominięci.
+-- Zastępuje wcześniej zapisane wyniki tych zawodów. Można uruchomić ponownie.
+
+begin;
+delete from public.wyniki_igrzysk where dyscyplina = 'triathlon' and zawody = 'azja';
+
+insert into public.wyniki_igrzysk (plec, zawody, miejsce, zawodnik, kraj) values
+  ('M', 'azja', 1, 'Takumi Hojo', 'JPN'),
+  ('M', 'azja', 2, 'Xirui Zhang', 'CHN'),
+  ('M', 'azja', 3, 'Arlan Zhanabay', 'KAZ'),
+  ('M', 'azja', 4, 'Jérémy Quindos', 'UZB'),
+  ('M', 'azja', 5, 'Junjie Fan', 'CHN'),
+  ('M', 'azja', 6, 'Robin Elg', 'HKG'),
+  ('M', 'azja', 7, 'Oscar Coggins', 'HKG'),
+  ('M', 'azja', 8, 'Aoba Yasumatsu', 'JPN'),
+  ('M', 'azja', 9, 'Ayan Beisenbayev', 'KAZ'),
+  ('M', 'azja', 10, 'Fernando José Casares Tan', 'PHI'),
+  ('M', 'azja', 11, 'Rashif Amila Yaqin', 'INA'),
+  ('M', 'azja', 12, 'Sangmin Park', 'KOR'),
+  ('M', 'azja', 13, 'Yi Jun Tey', 'SGP'),
+  ('M', 'azja', 14, 'Adoh Doherty', 'LBN'),
+  ('M', 'azja', 15, 'Taegi Kim', 'KOR'),
+  ('M', 'azja', 16, 'Muhammad Noval Ashidiq', 'INA'),
+  ('M', 'azja', 17, 'Li Rong, Luke Chua', 'SGP'),
+  ('M', 'azja', 18, 'Iñaki Lorbes', 'PHI'),
+  ('M', 'azja', 19, 'Omar Abdulla Hamza Ali', 'BRN'),
+  ('M', 'azja', 20, 'Aleksandr Kurishov', 'UZB'),
+  ('M', 'azja', 21, 'Farid Hadipour', 'IRI'),
+  ('M', 'azja', 22, 'Abdelrahman Tantish', 'PLE'),
+  ('M', 'azja', 23, 'Kritsanaphon Phonphai', 'THA'),
+  ('M', 'azja', 24, 'Cheok Hei Lao', 'MAC'),
+  ('M', 'azja', 25, 'Chon Ip Chan', 'MAC'),
+  ('M', 'azja', 26, 'Yousuf Alhanaee', 'UAE'),
+  ('M', 'azja', 27, 'Temirlan Abdrakhimov', 'KGZ'),
+  ('M', 'azja', 28, 'Pattarapoom Onsuwan', 'THA'),
+  ('M', 'azja', 29, 'Salamatov Adamkhan', 'KGZ'),
+  ('K', 'azja', 1, 'Xinyu Lin', 'CHN'),
+  ('K', 'azja', 2, 'Anqi Huang', 'CHN'),
+  ('K', 'azja', 3, 'Manami Hayashi', 'JPN'),
+  ('K', 'azja', 4, 'Martina Ayu Pratiwi', 'INA'),
+  ('K', 'azja', 5, 'Mako Hiraizumi', 'JPN'),
+  ('K', 'azja', 6, 'Hye Rim Jeong', 'KOR'),
+  ('K', 'azja', 7, 'Margot Garabedian', 'CAM'),
+  ('K', 'azja', 8, 'Bailee Brown', 'HKG'),
+  ('K', 'azja', 9, 'Raven Alcoseba', 'PHI'),
+  ('K', 'azja', 10, 'Tallulah Wright', 'HKG'),
+  ('K', 'azja', 11, 'Hye Rang Kim', 'KOR'),
+  ('K', 'azja', 12, 'Alina Khakimova', 'UZB'),
+  ('K', 'azja', 13, 'Long Hoi', 'MAC'),
+  ('K', 'azja', 14, 'Kayla Nadia Shafa', 'INA'),
+  ('K', 'azja', 15, 'Yen Ling Kathlyn Yeo', 'SGP'),
+  ('K', 'azja', 16, 'Lydia Musleh', 'JOR'),
+  ('K', 'azja', 17, 'Diana Yerzhanova', 'KAZ'),
+  ('K', 'azja', 18, 'Herlene Natasha Yu', 'SGP'),
+  ('K', 'azja', 19, 'Wan U Cheng', 'MAC'),
+  ('K', 'azja', 20, 'Marion Kim Mangrobang', 'PHI'),
+  ('K', 'azja', 21, 'Suchaya Leenakul', 'THA'),
+  ('K', 'azja', 22, 'Angelina Blindul', 'KGZ'),
+  ('K', 'azja', 23, 'Pichayanat Kittivorakij', 'THA');
+
+commit;

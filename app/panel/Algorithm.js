@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { toNoc, countryPl } from '../../lib/countries';
 import { GAMES } from '../../lib/triathlon';
-import { parsePastedTable } from '../../lib/paste';
+import { rowsFromTable } from '../../lib/tableRows';
 
 const PLEC = { K: 'Kobiety', M: 'Mężczyźni', X: 'Mieszana' };
 
@@ -56,7 +56,8 @@ function GamesResults({ plec, game, rows, token, onSaved }) {
   const [msg, setMsg] = useState({ ok: '', err: '' });
   const [busy, setBusy] = useState(false);
 
-  const parsed = text.trim() ? parsePastedTable(text) : null;
+  // Wklejka z Excela/strony: kolumny rozdzielone tabulatorem (eksport triathlon.org: First/Last Name, Country, Position)
+  const parsed = text.trim() ? { rows: rowsFromTable(text.split(/\r?\n/).filter(l => l.trim()).map(l => l.split('\t').map(c => c.trim()))) } : null;
   const items = (parsed?.rows || []).map(r => {
     const raw = r.kod_kraju || r.kraj || '';
     return { miejsce: r.pozycja, zawodnik: r.zawodnik, kraj: toNoc(raw), raw };
