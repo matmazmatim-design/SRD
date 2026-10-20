@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { toNoc, countryPl } from '../../lib/countries';
 import { GAMES } from '../../lib/triathlon';
+import { parsePastedTable } from '../../lib/paste';
 
 const PLEC = { K: 'Kobiety', M: 'Mężczyźni', X: 'Mieszana' };
 
@@ -48,6 +49,74 @@ function SourceSelect({ id, label, value, sources, onChange, optional }) {
   );
 }
 
+// Wyniki igrzysk kontynentalnych: podgląd zapisanych i wklejanie nowych
+function GamesResults({ plec, game, rows, token, onSaved }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [msg, setMsg] = useState({ ok: '', err: '' });
+  const [busy, setBusy] = useState(false);
+
+  const parsed = text.trim() ? parsePastedTable(text) : null;
+  const items = (parsed?.rows || []).map(r => {
+    const raw = r.kod_kraju || r.kraj || '';
+    return { miejsce: r.pozycja, zawodnik: r.zawodnik, kraj: toNoc(raw), raw };
+  });
+  const bad = items.filter(i => !i.kraj);
+
+  async function save() {
+    setBusy(true);
+    setMsg({ ok: '', err: '' });
+    const good = items.filter(i => i.kraj);
+    const del = await supabase.from('wyniki_igrzysk').delete().eq('dyscyplina', 'triathlon').eq('plec', plec).eq('zawody', game.key);
+    if (del.error) { setBusy(false); return setMsg({ ok: '', err: 'Nie zapisano: ' + del.error.message }); }
+    const ins = await supabase.from('wyniki_igrzysk').insert(good.map(i => ({ dyscyplina: 'triathlon', plec, zawody: game.key, miejsce: i.miejsce, zawodnik: i.zawodnik, kraj: i.kraj })));
+    setBusy(false);
+    if (ins.error) return setMsg({ ok: '', err: 'Nie zapisano: ' + ins.error.message });
+    await revalidate(token);
+    setText(''); setOpen(false);
+    setMsg({ ok: `Zapisano ${good.length} wyników.`, err: '' });
+    onSaved();
+  }
+
+  async function clear() {
+    const { error } = await supabase.from('wyniki_igrzysk').delete().eq('dyscyplina', 'triathlon').eq('plec', plec).eq('zawody', game.key);
+    if (error) return setMsg({ ok: '', err: error.message });
+    await revalidate(token);
+    setMsg({ ok: 'Usunięto wyniki.', err: '' });
+    onSaved();
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
+      {rows.length ? (
+        <span style={{ color: 'var(--body)' }}>
+          <strong>Wyniki w bazie ({rows.length}):</strong> {rows.slice(0, 3).map(r => `${r.miejsce}. ${r.zawodnik} (${r.kraj})`).join(' · ')}{rows.length > 3 ? ' …' : ''}
+        </span>
+      ) : <span className="hint">Brak wyników w bazie – liczy się pole z krajami powyżej.</span>}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button type="button" className="btn btn-ghost" onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? 'Zamknij' : rows.length ? 'Wklej nowe wyniki' : 'Wklej wyniki'}</button>
+        {rows.length > 0 && <button type="button" className="btn btn-ghost" onClick={clear}>Usuń wyniki</button>}
+      </div>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <textarea value={text} onChange={e => setText(e.target.value)} rows={6} aria-label={`Wyniki – ${game.nazwa}`}
+            placeholder={'Skopiuj tabelę wyników (miejsce, zawodnik, kraj), np.\n1\tTakumi Hojo\tJPN\n2\tXirui Zhang\tCHN'}
+            style={{ font: 'inherit', fontSize: 13, padding: 10, borderRadius: 8, border: '1px solid var(--line-2)', background: 'var(--bg)', color: 'var(--ink)', resize: 'vertical' }} />
+          {parsed && (
+            <span style={{ color: 'var(--body)' }}>
+              Rozpoznano {items.length} zawodników{items.length ? `: ${items.slice(0, 4).map(i => `${i.miejsce}. ${i.zawodnik} (${i.kraj || '?'})`).join(' · ')}` : ''}.
+              {bad.length > 0 && <span style={{ color: 'var(--warn)' }}> Bez rozpoznanego kraju ({bad.length}) – zostaną pominięci: {bad.slice(0, 5).map(b => `${b.zawodnik} „${b.raw}”`).join(', ')}.</span>}
+            </span>
+          )}
+          <button type="button" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={busy || !items.some(i => i.kraj)} onClick={save}>{busy ? 'Zapisuję…' : 'Zapisz wyniki'}</button>
+        </div>
+      )}
+      {msg.ok && <span className="msg-ok" role="status">{msg.ok}</span>}
+      {msg.err && <span className="msg-err" role="alert">{msg.err}</span>}
+    </div>
+  );
+}
+
 function toForm(cfg) {
   const list = v => (Array.isArray(v) ? v.join(', ') : v || '');
   return {
@@ -60,7 +129,7 @@ function toForm(cfg) {
   };
 }
 
-function EventCard({ event, sources, token, onSaved }) {
+function EventCard({ event, sources, results, token, onSaved }) {
   const [f, setF] = useState(() => toForm(event.algorytm || {}));
   const [msg, setMsg] = useState({ ok: '', err: '' });
   const [busy, setBusy] = useState(false);
@@ -103,9 +172,12 @@ function EventCard({ event, sources, token, onSaved }) {
       <fieldset className="form-grid" style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="eyebrow" style={{ marginBottom: 10 }}>Nowa flaga – igrzyska kontynentalne (po 1 miejscu)</legend>
         {GAMES.map(g => (
-          <CountryField key={g.key} id={pid(g.key)} label={g.nazwa} value={f.igrzyska[g.key]}
-            onChange={v => set({ igrzyska: { ...f.igrzyska, [g.key]: v } })}
-            help="Kraje w kolejności wyników. Jeśli pierwszy ma już miejsce, przechodzi na następny." />
+          <div key={g.key} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <CountryField id={pid(g.key)} label={g.nazwa} value={f.igrzyska[g.key]}
+              onChange={v => set({ igrzyska: { ...f.igrzyska, [g.key]: v } })}
+              help="Gdy nie masz pełnych wyników: kraje w kolejności. Pełne wyniki (niżej) mają pierwszeństwo." />
+            {event.plec !== 'X' && <GamesResults plec={event.plec} game={g} rows={results.filter(r => r.zawody === g.key)} token={token} onSaved={onSaved} />}
+          </div>
         ))}
       </fieldset>
 
@@ -128,6 +200,7 @@ function EventCard({ event, sources, token, onSaved }) {
 export default function Algorithm({ session }) {
   const [events, setEvents] = useState(null);
   const [sources, setSources] = useState([]);
+  const [results, setResults] = useState([]);
   const [err, setErr] = useState('');
 
   async function load() {
@@ -136,6 +209,8 @@ export default function Algorithm({ session }) {
     setEvents(data || []);
     const { data: src } = await supabase.from('zrodla_rankingow').select('slug, nazwa').order('nazwa');
     setSources(src || []);
+    const { data: wy } = await supabase.from('wyniki_igrzysk').select('plec, zawody, miejsce, zawodnik, kraj').eq('dyscyplina', 'triathlon').order('miejsce');
+    setResults(wy || []);
   }
   useEffect(() => { load(); }, []);
 
@@ -146,7 +221,7 @@ export default function Algorithm({ session }) {
         Lista olimpijska liczy się sama z rankingów. Tu wpisujesz tylko to, czego nie ma w rankingach: wyniki MŚ sztafet, igrzysk kontynentalnych i miejsca uniwersalne.
       </p>
       {err && <p className="msg-err" role="alert">{err}</p>}
-      {events.map(e => <EventCard key={e.id} event={e} sources={sources} token={session.access_token} onSaved={load} />)}
+      {events.map(e => <EventCard key={e.id} event={e} sources={sources} results={results.filter(r => r.plec === e.plec)} token={session.access_token} onSaved={load} />)}
     </div>
   );
 }
