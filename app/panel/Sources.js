@@ -6,7 +6,8 @@ import { paramsFromCurl } from '../../lib/uci';
 import { parsePastedTable } from '../../lib/paste';
 import { progiToText, textToProgi } from '../../lib/compute';
 
-const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon', owgr: 'OWGR', wklejka: 'Wklejka' };
+const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon – plik XLS (automatycznie)', owgr: 'OWGR', wklejka: 'Wklejka' };
+const WT_LINK = /^https:\/\/([a-z0-9-]+\.)*triathlon\.org\//i;
 
 function slugify(s) {
   return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l')
@@ -113,6 +114,14 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
     await updateLink({ zasady });
   }
 
+  const [wtLink, setWtLink] = useState(source.typ === 'world_triathlon' ? source.parametry?.url || '' : '');
+  async function saveWtLink(e) {
+    e.preventDefault();
+    const url = wtLink.trim();
+    if (url && !WT_LINK.test(url)) return setMsg({ ok: '', err: 'Link musi prowadzić do triathlon.org.' });
+    await updateLink(url ? { typ: 'world_triathlon', parametry: { ...(source.parametry || {}), url } } : { typ: 'wklejka' });
+  }
+
   async function updateLink(patch) {
     setMsg({ ok: '', err: '' });
     const { error } = await supabase.from('zrodla_rankingow').update(patch).eq('id', source.id);
@@ -170,8 +179,16 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
           <button type="submit" className="btn btn-ghost" style={{ alignSelf: 'flex-start' }}>Zapisz zasady</button>
         </form>
       </details>
+      {(source.typ === 'wklejka' || source.typ === 'world_triathlon') && (
+        <form onSubmit={saveWtLink} style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-end' }}>
+          <label className="field" htmlFor={'wt-' + source.id} style={{ flex: '1 1 320px' }}>Link do pliku XLS z triathlon.org (pobierane automatycznie codziennie)
+            <input id={'wt-' + source.id} type="url" value={wtLink} onChange={e => setWtLink(e.target.value)} placeholder="https://triathlon.org/api/rankings/…/export" />
+          </label>
+          <button type="submit" className="btn btn-ghost">{wtLink.trim() ? 'Zapisz link' : 'Wyłącz pobieranie'}</button>
+        </form>
+      )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {source.typ === 'uci' && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
+        {(source.typ === 'uci' || source.typ === 'world_triathlon') && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
         <button type="button" className="btn btn-ghost" onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? 'Zamknij wklejkę' : 'Wklej ranking'}</button>
         {lastOk && <button type="button" className="btn btn-ghost" onClick={loadPreview}>Podgląd danych</button>}
       </div>
@@ -320,7 +337,7 @@ export default function Sources({ session }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <p style={{ margin: 0, color: 'var(--body)', maxWidth: '70ch' }}>
-        Rankingi UCI pobierają się same codziennie nad ranem. Pozostałe aktualizujesz, wklejając tabelę ze strony źródła.
+        Rankingi UCI i World Triathlon (z linkiem do pliku XLS) pobierają się same codziennie nad ranem. Pozostałe aktualizujesz, wklejając tabelę ze strony źródła.
       </p>
       {sources.length === 0 && <p className="panel" style={{ color: 'var(--muted)' }}>Brak źródeł. Dodaj pierwsze poniżej.</p>}
       {sources.map(s => {
