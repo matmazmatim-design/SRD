@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SPORTS } from '../../../lib/sports';
 import { getSportHub } from '../../../lib/data';
-import { formatDatePl, daysBetween, quotaFor, QUAL, qualKind, quotaKind } from '../../../lib/compute';
+import { formatDatePl, daysBetween, quotaFor, QUAL, rowKind, quotaKind } from '../../../lib/compute';
 
 export const revalidate = 300;
 
@@ -106,7 +106,7 @@ export default async function SportPage({ params }) {
                     {e.poles.slice(0, 3).map(p => (
                       <span key={p.zawodnik} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--line)', fontSize: 15 }}>
                         <strong>{p.zawodnik}</strong>
-                        <span className={QUAL[qualKind(p.sciezka)].chip} style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>{QUAL[qualKind(p.sciezka)].label}</span>
+                        <span className={QUAL[rowKind(p)].chip} style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>{QUAL[rowKind(p)].label}</span>
                       </span>
                     ))}
                   </span>

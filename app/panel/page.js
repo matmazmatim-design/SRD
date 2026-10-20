@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import Sources from './Sources';
+import Algorithm from './Algorithm';
 
 const PATHS = {
   triathlon: ['Gospodarz', 'MŚ sztafet 2026', 'MŚ sztafet 2027', 'Ranking sztafet (MROQR)', 'Ranking IOQR', 'Nowa flaga – igrzyska kontynentalne', 'Nowa flaga – World Triathlon Ranking', 'Zaproszenie (uniwersalność)', 'Realokacja'],
@@ -230,14 +231,14 @@ export default function PanelPage() {
       {session && isAdmin && (
         <>
           <div className="seg" role="tablist" aria-label="Sekcje panelu">
-            {[['kwalifikacje', 'Kwalifikacje'], ['zrodla', 'Źródła danych']].map(([id, label]) => (
+            {[['kwalifikacje', 'Kwalifikacje'], ['algorytm', 'Lista olimpijska – wpisy'], ['zrodla', 'Źródła danych']].map(([id, label]) => (
               <button key={id} type="button" role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
                 style={{ font: 'inherit', minHeight: 40, padding: '0 18px', borderRadius: 999, border: 0, cursor: 'pointer', fontWeight: tab === id ? 600 : 500, background: tab === id ? 'var(--blue)' : 'transparent', color: tab === id ? '#000000' : 'var(--body)' }}>
                 {label}
               </button>
             ))}
           </div>
-          {tab === 'kwalifikacje' ? <Editor session={session} /> : <Sources session={session} />}
+          {tab === 'kwalifikacje' ? <Editor session={session} /> : tab === 'algorytm' ? <Algorithm session={session} /> : <Sources session={session} />}
         </>
       )}
     </main>

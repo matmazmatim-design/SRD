@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import RankingTable from '../../../../components/RankingTable';
 import SourceRanking from '../../../../components/SourceRanking';
 import { getEventPage } from '../../../../lib/data';
-import { summarize, isPolish, formatNumber, formatDatePl, QUAL, qualKind, quotaKind, quotaFor, gapToLine, lastQuotaPosition } from '../../../../lib/compute';
+import { countryPl } from '../../../../lib/countries';
+import { summarize, isPolish, formatNumber, formatDatePl, QUAL, rowKind, quotaKind, quotaFor, gapToLine, lastQuotaPosition } from '../../../../lib/compute';
 
 export const revalidate = 300;
 
@@ -55,6 +56,7 @@ export default async function EventPage({ params }) {
           <h1 className="display">{sport.name} <span className="accent">— {(PLEC[event.plec] || event.nazwa).toLowerCase()}</span></h1>
           {event.opis && <p className="lead">{event.opis}</p>}
           {simulation && <p style={{ margin: 0, fontSize: 14, color: 'var(--muted)' }}>Stan na {formatDatePl(simulation.stan_na)} · {simulation.opis}</p>}
+          {simulation?.notes?.map(n => <p key={n} style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>⚠ {n}</p>)}
         </div>
         <div className="side panel" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <span className="eyebrow">Polska dziś</span>
@@ -100,7 +102,7 @@ export default async function EventPage({ params }) {
           <h2 className="h2" style={{ fontSize: 32 }}>Polacy</h2>
           <div className="people">
             {poles.slice(0, 4).map(p => {
-              const kind = qualKind(p.sciezka);
+              const kind = rowKind(p);
               const onList = s.lists.zakwalifikowani.find(r => r.zawodnik === p.zawodnik);
               const onReserve = s.lists.rezerwa.find(r => r.zawodnik === p.zawodnik);
               const margin = onList ? s.qualifiedCount - onList.lp : 0;
@@ -115,7 +117,7 @@ export default async function EventPage({ params }) {
                     <div className="person-name">{p.zawodnik}</div>
                     <span className={QUAL[kind].chip}>{QUAL[kind].label}</span>
                   </div>
-                  <div className="person-sub">{p.sciezka}</div>
+                  <div className="person-sub">{p.sciezka}{p.gwiazdka && <button type="button" className="star" popoverTarget={'zasady-' + p.gwiazdka} aria-label="Jak to miejsce może się zmienić">*</button>}</div>
                   <div className="kv">
                     <div><div className="k">{rankingLabel}</div><div className="v">{p.pozycja_rankingu ?? '—'}</div></div>
                     <div><div className="k">Punkty</div><div className="v">{formatNumber(p.punkty, 2)}</div></div>
@@ -160,7 +162,7 @@ export default async function EventPage({ params }) {
                 <div className="rtable">
                   {s.lists.limit_kraju.map(r => (
                     <div key={r.lp} className="rrow">
-                      <span>{r.lp}</span><span className="rank">{r.pozycja_rankingu}</span><span>{r.zawodnik}</span><span>{r.kraj}</span><span className="n">{formatNumber(r.punkty)}</span><span className="chip chip-out" style={{ justifySelf: 'start' }}>Limit kraju</span>
+                      <span>{r.lp}</span><span className="rank">{r.pozycja_rankingu}</span><span>{r.zawodnik}</span><span>{countryPl(r.kraj)}</span><span className="n">{formatNumber(r.punkty)}</span><span className="chip chip-out" style={{ justifySelf: 'start' }}>Limit kraju</span>
                     </div>
                   ))}
                 </div>

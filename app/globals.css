@@ -210,3 +210,12 @@ details.more summary { cursor: pointer; min-height: 44px; display: flex; align-i
   .tl-item, .tl-today { grid-template-columns: 86px 14px minmax(0, 1fr); gap: 8px; }
   .stat .value { font-size: 30px; }
 }
+
+/* Gwiazdka przy miejscach, które mogą się zmienić, i okienko z zasadami */
+.star { margin-left: 4px; padding: 0 6px; border: 1px solid var(--blue); border-radius: 999px; background: transparent; color: var(--blue-text); font: inherit; font-weight: 700; line-height: 1.3; cursor: pointer; }
+.star:hover, .star:focus-visible { background: var(--blue-soft); }
+.rules-pop { max-width: min(520px, calc(100vw - 32px)); padding: 20px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0,0,0,.45); font-size: 14px; line-height: 1.5; }
+.rules-pop::backdrop { background: rgba(0,0,0,.5); }
+.rules-pop ul { margin: 10px 0 14px; padding-left: 20px; color: var(--body); display: grid; gap: 6px; }
+.hint { font-size: 12px; font-weight: 400; color: var(--muted); line-height: 1.4; }
+fieldset .hint { display: block; }
