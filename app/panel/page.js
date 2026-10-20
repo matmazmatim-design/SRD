@@ -128,7 +128,7 @@ function Editor({ session }) {
               <strong style={{ minWidth: 160 }}>{k.zawodnik}</strong>
               <span style={{ color: 'var(--body)' }}>{PLEC[events.find(e => e.id === k.konkurencja_id)?.plec] || ''}</span>
               <span className="chip chip-path">{k.sciezka}</span>
-              <span className={k.status === 'potwierdzona' ? 'chip chip-ok' : 'chip chip-warn'}>{k.status === 'potwierdzona' ? 'Potwierdzona' : 'Symulacja'}</span>
+              <span className={k.status === 'potwierdzona' ? 'chip chip-ok' : 'chip chip-virt'}>{k.status === 'potwierdzona' ? 'Zakwalifikowany' : 'Wirtualna kwalifikacja'}</span>
               <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ color: 'var(--muted)', fontSize: 13 }}>{k.data_przyznania || ''}</span>
                 <button type="button" className="btn btn-ghost" onClick={() => remove(k.id)} aria-label={'Usuń wpis: ' + k.zawodnik} style={{ minHeight: 36, padding: '0 12px', fontWeight: 500 }}>Usuń</button>
@@ -172,7 +172,7 @@ function Editor({ session }) {
           <fieldset style={{ margin: 0, padding: 0, border: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <legend className="field" style={{ marginBottom: 8 }}>Status</legend>
             <div className="pills">
-              {[['potwierdzona', 'Potwierdzona'], ['symulacja', 'Symulacja']].map(([v, l]) => (
+              {[['potwierdzona', 'Zakwalifikowany (pewna)'], ['symulacja', 'Wirtualna kwalifikacja']].map(([v, l]) => (
                 <button key={v} type="button" className="pill" aria-pressed={form.status === v} onClick={() => setForm({ ...form, status: v })}>{l}</button>
               ))}
             </div>

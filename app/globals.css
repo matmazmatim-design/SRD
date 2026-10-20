@@ -126,6 +126,8 @@ h1.display { font-size: clamp(42px, 7vw, 68px); }
 
 .chip-warn { background: var(--warn-bg); color: var(--warn); }
 .chip-res { background: var(--rowline); color: var(--body); }
+.chip-virt { background: var(--blue-soft); color: var(--blue-text); }
+.chip-virt::before { content: ''; width: 7px; height: 7px; border-radius: 50%; border: 1.5px solid currentColor; box-sizing: border-box; }
 .chip-out { background: transparent; color: var(--muted); border: 1px solid var(--line-2); }
 .chip-path { border: 1px solid var(--blue); color: var(--blue-text); }
 

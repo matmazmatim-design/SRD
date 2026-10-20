@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { condenseRanking, rowIsPolish, formatNumber, formatDatePl, quotaFor, lastQuotaPosition } from '../lib/compute';
+import { condenseRanking, rowIsPolish, formatNumber, formatDatePl, quotaFor, quotaKind, lastQuotaPosition, QUAL } from '../lib/compute';
 import { countryPl } from '../lib/countries';
 
 const SOURCE_NAME = { uci: 'UCI', world_triathlon: 'World Triathlon', owgr: 'OWGR' };
@@ -17,7 +17,7 @@ export default function SourceRanking({ ranking }) {
   const line = lastQuotaPosition(rules);
   const items = full ? ranking.rows.map(r => ({ type: 'row', row: r })) : condenseRanking(ranking.rows, { line });
   const name = national ? 'minmax(0, 1fr)' : 'minmax(0, 2fr) minmax(0, 1.2fr)';
-  const cols = `56px ${name} 88px` + (rules ? ' 120px 190px' : '');
+  const cols = `56px ${name} 88px` + (rules ? ' 120px 210px' : '');
   const center = { textAlign: 'center', justifySelf: 'center' };
   const digits = ranking.rows.some(r => r.punkty !== null && !Number.isInteger(Number(r.punkty))) ? 2 : 0;
   const source = SOURCE_NAME[ranking.typ] || 'strona źródła';
@@ -33,9 +33,7 @@ export default function SourceRanking({ ranking }) {
         {!national && <span>{countryPl(r.kraj || r.kod_kraju) || '—'}</span>}
         <span style={center}>{formatNumber(r.punkty, digits)}</span>
         {rules && <span style={{ ...center, fontWeight: 700, fontSize: 16 }}>{q || '—'}</span>}
-        {rules && (q
-          ? <span className="chip chip-ok" style={center}>{national ? 'Kraj z kwotą' : 'W strefie'}</span>
-          : <span className="chip chip-out" style={center}>Poza strefą</span>)}
+        {rules && <span className={QUAL[quotaKind(r.pozycja, rules)].chip} style={center}>{QUAL[quotaKind(r.pozycja, rules)].label}</span>}
       </div>
     );
   }

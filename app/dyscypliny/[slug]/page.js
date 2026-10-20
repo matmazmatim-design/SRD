@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SPORTS } from '../../../lib/sports';
 import { getSportHub } from '../../../lib/data';
-import { statusKind, formatDatePl, daysBetween, quotaFor } from '../../../lib/compute';
+import { formatDatePl, daysBetween, quotaFor, QUAL, qualKind, quotaKind } from '../../../lib/compute';
 
 export const revalidate = 300;
 
@@ -24,7 +24,6 @@ const TYP = {
   formalny: ['Termin formalny', '#8A949F'],
   igrzyska: ['Igrzyska', '#2FD07A']
 };
-const CHIP = { ok: 'chip chip-ok', warn: 'chip chip-warn', res: 'chip chip-res', out: 'chip chip-out' };
 
 function todayIso() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Warsaw' });
@@ -107,7 +106,7 @@ export default async function SportPage({ params }) {
                     {e.poles.slice(0, 3).map(p => (
                       <span key={p.zawodnik} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--line)', fontSize: 15 }}>
                         <strong>{p.zawodnik}</strong>
-                        <span className={CHIP[statusKind(p.sciezka)]}>{p.sciezka.split(' – ')[0]}</span>
+                        <span className={QUAL[qualKind(p.sciezka)].chip} style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>{QUAL[qualKind(p.sciezka)].label}</span>
                       </span>
                     ))}
                   </span>
@@ -115,9 +114,12 @@ export default async function SportPage({ params }) {
                 {!e.poles?.length && rk && (
                   <span style={{ display: 'flex', justifyContent: 'space-between', gap: 10, padding: '10px 0', borderTop: '1px solid var(--line)', fontSize: 15 }}>
                     <strong>{rk.rodzaj === 'krajowy' ? 'Polska w rankingu krajów' : (rkPl?.zawodnik || 'Polacy w rankingu')}</strong>
-                    <span className={rkPl && rk.zasady?.progi && quotaFor(rkPl.pozycja, rk.zasady) ? 'chip chip-ok' : rkPl ? 'chip chip-res' : 'chip chip-out'}>
-                      {rkPl ? `${rkPl.pozycja}. miejsce${rk.zasady?.progi ? (quotaFor(rkPl.pozycja, rk.zasady) ? ' · w strefie' : ' · poza strefą') : ''}` : 'poza rankingiem'}
-                    </span>
+                    {(() => {
+                      if (!rkPl) return <span className="chip chip-res">poza rankingiem</span>;
+                      if (!rk.zasady?.progi) return <span className="chip chip-res">{rkPl.pozycja}. miejsce</span>;
+                      const k = quotaKind(rkPl.pozycja, rk.zasady);
+                      return <span className={QUAL[k].chip}>{rkPl.pozycja}. miejsce · {QUAL[k].label.toLowerCase()}</span>;
+                    })()}
                   </span>
                 )}
                 {ready && <span className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: 'auto' }}>Zobacz status kwalifikacji ›</span>}

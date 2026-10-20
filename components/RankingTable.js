@@ -1,13 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { condense, isPolish, statusKind, formatNumber } from '../lib/compute';
+import { condense, isPolish, qualKind, QUAL, formatNumber } from '../lib/compute';
 import { countryPl } from '../lib/countries';
 
-const CHIP = { ok: 'chip chip-ok', warn: 'chip chip-warn', res: 'chip chip-res', out: 'chip chip-out' };
 
-const STATUS = { ok: 'Zakwalifikowany', warn: 'Na granicy', res: 'Rezerwa', out: 'Poza strefą' };
-const COLS = '48px 64px minmax(0, 1.5fr) minmax(0, 1fr) 96px minmax(0, 1.8fr) 150px';
+const COLS = '48px 64px minmax(0, 1.5fr) minmax(0, 1fr) 96px minmax(0, 1.8fr) 190px';
 const center = { textAlign: 'center', justifySelf: 'center' };
 
 // „Zakwalifikowany – realokacja kwot Oceanii” → „Realokacja kwot Oceanii” (status jest w osobnej kolumnie)
@@ -19,7 +17,7 @@ function pathText(sciezka) {
 }
 
 function Row({ r, label, pointsDigits }) {
-  const kind = statusKind(r.sciezka);
+  const kind = qualKind(r.sciezka);
   return (
     <div className={'rrow' + (isPolish(r.kraj) ? ' pl' : '')} style={{ gridTemplateColumns: COLS }}>
       <span style={{ fontWeight: 600 }}>{label}</span>
@@ -28,7 +26,7 @@ function Row({ r, label, pointsDigits }) {
       <span>{countryPl(r.kraj)}</span>
       <span style={center}>{formatNumber(r.punkty, pointsDigits)}</span>
       <span style={{ fontSize: 13, color: 'var(--body)' }}>{pathText(r.sciezka)}</span>
-      <span className={CHIP[kind]} style={center}>{STATUS[kind]}</span>
+      <span className={QUAL[kind].chip} style={center}>{QUAL[kind].label}</span>
     </div>
   );
 }
@@ -52,7 +50,7 @@ export default function RankingTable({ qualified, reserve, rankingLabel = 'Ranki
         <input id="szukaj-ranking" type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="np. Polska" />
       </label>
       <div className="table-box">
-        <div className="rtable" style={{ minWidth: 900 }}>
+        <div className="rtable" style={{ minWidth: 940 }}>
           <div className="rrow head" style={{ gridTemplateColumns: COLS }}>
             <span>#</span><span>{rankingLabel}</span><span>Zawodnik</span><span>Kraj</span><span style={center}>Pkt</span><span>Ścieżka</span><span style={center}>Status</span>
           </div>

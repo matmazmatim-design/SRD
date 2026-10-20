@@ -3,13 +3,12 @@ import { notFound } from 'next/navigation';
 import RankingTable from '../../../../components/RankingTable';
 import SourceRanking from '../../../../components/SourceRanking';
 import { getEventPage } from '../../../../lib/data';
-import { summarize, statusKind, isPolish, formatNumber, formatDatePl, STATE_LABEL, quotaFor, gapToLine, lastQuotaPosition } from '../../../../lib/compute';
+import { summarize, isPolish, formatNumber, formatDatePl, QUAL, qualKind, quotaKind, quotaFor, gapToLine, lastQuotaPosition } from '../../../../lib/compute';
 
 export const revalidate = 300;
 
 const RANKING_LABEL = { golf: 'OWGR', triathlon: 'IOQR' };
 const PLEC = { K: 'Kobiety', M: 'Mężczyźni', X: 'Mieszana' };
-const CHIP = { ok: 'chip chip-ok', warn: 'chip chip-warn', res: 'chip chip-res', out: 'chip chip-out' };
 
 export async function generateMetadata({ params }) {
   const { slug, konkurencja } = await params;
@@ -65,7 +64,7 @@ export default async function EventPage({ params }) {
                 <span className="num" style={{ fontSize: 68 }}>{s.polesIn.length}</span>
                 <span style={{ fontSize: 17, color: 'var(--muted)' }}>{qualLabel(s.polesIn.length)} w symulacji</span>
               </div>
-              <span className={CHIP[s.state]} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{STATE_LABEL[s.state]}</span>
+              <span className={QUAL[s.state].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{QUAL[s.state].label}</span>
             </>
           ) : mainRanking ? (
             bestPl ? (
@@ -77,13 +76,12 @@ export default async function EventPage({ params }) {
                 <span style={{ fontSize: 14, color: 'var(--body)' }}>{formatNumber(bestPl.punkty, 0)} pkt · stan na {formatDatePl(mainRanking.stanNa)}</span>
                 {mainRanking.zasady?.progi?.length > 0 && (() => {
                   const q = quotaFor(bestPl.pozycja, mainRanking.zasady);
+                  const kind = quotaKind(bestPl.pozycja, mainRanking.zasady);
                   const gap = gapToLine(mainRanking.rows, bestPl, mainRanking.zasady);
-                  return q ? (
-                    <span className="chip chip-ok" style={{ alignSelf: 'flex-start', fontSize: 14 }}>W strefie · {q === 1 ? '1 miejsce' : `${q} miejsca`} na IO</span>
-                  ) : (
+                  return (
                     <>
-                      <span className="chip chip-out" style={{ alignSelf: 'flex-start', fontSize: 14 }}>Poza strefą rankingu</span>
-                      {gap !== null && <span style={{ fontSize: 14, color: 'var(--body)' }}>Do {lastQuotaPosition(mainRanking.zasady)}. miejsca brakuje {formatNumber(gap, 0)} pkt</span>}
+                      <span className={QUAL[kind].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{QUAL[kind].label}{q ? ` · ${q === 1 ? '1 miejsce' : `${q} miejsca`} na IO` : ''}</span>
+                      {!q && gap !== null && <span style={{ fontSize: 14, color: 'var(--body)' }}>Do {lastQuotaPosition(mainRanking.zasady)}. miejsca brakuje {formatNumber(gap, 0)} pkt</span>}
                     </>
                   );
                 })()}
@@ -102,7 +100,7 @@ export default async function EventPage({ params }) {
           <h2 className="h2" style={{ fontSize: 32 }}>Polacy</h2>
           <div className="people">
             {poles.slice(0, 4).map(p => {
-              const kind = statusKind(p.sciezka);
+              const kind = qualKind(p.sciezka);
               const onList = s.lists.zakwalifikowani.find(r => r.zawodnik === p.zawodnik);
               const onReserve = s.lists.rezerwa.find(r => r.zawodnik === p.zawodnik);
               const margin = onList ? s.qualifiedCount - onList.lp : 0;
@@ -115,7 +113,7 @@ export default async function EventPage({ params }) {
                 <article key={p.zawodnik} className="person">
                   <div className="person-head">
                     <div className="person-name">{p.zawodnik}</div>
-                    <span className={CHIP[kind]}>{kind === 'ok' ? 'Zakwalifikowany' : kind === 'warn' ? 'Na granicy' : kind === 'res' ? 'Rezerwa' : 'Poza strefą'}</span>
+                    <span className={QUAL[kind].chip}>{QUAL[kind].label}</span>
                   </div>
                   <div className="person-sub">{p.sciezka}</div>
                   <div className="kv">
@@ -142,7 +140,7 @@ export default async function EventPage({ params }) {
                 <div key={m.zawodnik + m.sciezka} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
                   <strong>{m.zawodnik}</strong>
                   <span className="chip chip-path">{m.sciezka}</span>
-                  <span className={m.status === 'potwierdzona' ? 'chip chip-ok' : 'chip chip-warn'}>{m.status === 'potwierdzona' ? 'Potwierdzona' : 'Symulacja'}</span>
+                  <span className={QUAL[m.status === 'potwierdzona' ? 'ok' : 'virt'].chip}>{QUAL[m.status === 'potwierdzona' ? 'ok' : 'virt'].label}</span>
                 </div>
               ))}
             </div>
