@@ -76,7 +76,14 @@ export default async function EventPage({ params }) {
                   <span style={{ fontSize: 17, color: 'var(--muted)' }}>{mainRanking.rodzaj === 'krajowy' ? 'miejsce w rankingu krajów' : `miejsce – ${bestPl.zawodnik}`}</span>
                 </div>
                 <span style={{ fontSize: 14, color: 'var(--body)' }}>{formatNumber(bestPl.punkty, 0)} pkt · stan na {formatDatePl(mainRanking.stanNa)}</span>
-                {mainRanking.zasady?.progi?.length > 0 && (() => {
+                {mainRanking.allocation && (
+                  <>
+                    <span className={QUAL[bestPl.status || 'res'].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{QUAL[bestPl.status || 'res'].label}</span>
+                    {bestPl.sciezka && <span style={{ fontSize: 14, color: 'var(--body)' }}>{bestPl.sciezka}</span>}
+                    {!bestPl.sciezka && mainRanking.linePos && <span style={{ fontSize: 14, color: 'var(--body)' }}>Ostatni kraj z miejscem z rankingu sztafet jest dziś na {mainRanking.linePos}. pozycji.</span>}
+                  </>
+                )}
+                {!mainRanking.allocation && mainRanking.zasady?.progi?.length > 0 && (() => {
                   const q = quotaFor(bestPl.pozycja, mainRanking.zasady);
                   const kind = quotaKind(bestPl.pozycja, mainRanking.zasady);
                   const gap = gapToLine(mainRanking.rows, bestPl, mainRanking.zasady);

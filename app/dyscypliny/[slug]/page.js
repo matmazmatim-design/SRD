@@ -116,6 +116,7 @@ export default async function SportPage({ params }) {
                     <strong>{rk.rodzaj === 'krajowy' ? 'Polska w rankingu krajów' : (rkPl?.zawodnik || 'Polacy w rankingu')}</strong>
                     {(() => {
                       if (!rkPl) return <span className="chip chip-res">poza rankingiem</span>;
+                      if (rk.allocation) { const k = rkPl.status || 'res'; return <span className={QUAL[k].chip}>{rkPl.pozycja}. miejsce · {QUAL[k].label.toLowerCase()}</span>; }
                       if (!rk.zasady?.progi) return <span className="chip chip-res">{rkPl.pozycja}. miejsce</span>;
                       const k = quotaKind(rkPl.pozycja, rk.zasady);
                       return <span className={QUAL[k].chip}>{rkPl.pozycja}. miejsce · {QUAL[k].label.toLowerCase()}</span>;
