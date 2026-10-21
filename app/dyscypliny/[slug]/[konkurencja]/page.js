@@ -34,8 +34,10 @@ export default async function EventPage({ params }) {
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Warsaw' });
   const plKwoty = (kwoty || []).filter(k => k.kraj === 'POL');
   const OTHER_CONT = /azjat|azji|azja|panamery|ameryk|pacyfik|oceani|afryk/i;
-  const nextChance = (kwoty || []).find(k => !k.kraj && k.data_zawodow && k.data_zawodow >= today && !OTHER_CONT.test(k.zawody))
-    || (kwoty || []).find(k => !k.kraj && !k.data_zawodow && !OTHER_CONT.test(k.zawody));
+  // Najbliższe w czasie zawody, na których Polska może jeszcze zdobyć miejsce (bez zawód innych kontynentów)
+  const open = (kwoty || []).filter(k => !k.kraj && !OTHER_CONT.test(k.zawody));
+  const nextChance = open.filter(k => k.data_zawodow && k.data_zawodow >= today).sort((a, b) => a.data_zawodow.localeCompare(b.data_zawodow))[0]
+    || open.find(k => !k.data_zawodow);
   const plTeam = omtr?.find(r => r.noc === 'POL') || null;
   const mainRanking = rankings[0] || null;
   const bestPl = mainRanking?.polish?.[0] || null;
