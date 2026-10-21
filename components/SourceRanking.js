@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { condenseRanking, rowIsPolish, formatNumber, formatDatePl, quotaFor, quotaKind, lastQuotaPosition, QUAL } from '../lib/compute';
 import { countryPl } from '../lib/countries';
 
-const SOURCE_NAME = { uci: 'UCI', world_triathlon: 'World Triathlon', owgr: 'OWGR' };
+const SOURCE_NAME = { uci: 'UCI', world_triathlon: 'World Triathlon', owgr: 'OWGR', rolex: 'Rolex Rankings', worldarchery: 'World Archery' };
 
 function placesLabel(n) {
   return n === 1 ? '1 miejsce' : `${n} miejsca`;
@@ -61,7 +61,7 @@ export default function SourceRanking({ ranking }) {
             <span key={e.noc} className="chip chip-ok">{countryPl(e.noc)} – {e.sciezka.replace(/ \(.*\)$/, '').replace(/^Gospodarz$/, 'gospodarz')}</span>
           ))}
           {alloc.pending.map(p => <span key={p.sciezka} className="chip chip-soon">{p.sciezka} – do rozstrzygnięcia</span>)}
-          <span>+ 8 krajów z rankingu sztafet (najpierw najlepszy kraj z każdego kontynentu z top 15){ranking.zasady?.zamkniecie ? ` · ranking zamyka się ${formatDatePl(ranking.zasady.zamkniecie)}` : ''}</span>
+          <span>{ranking.quotaRanking ? `${ranking.zasady.miejsc} ${ranking.zasady.miejsc === 1 ? 'miejsce' : 'miejsca'} dla najwyżej sklasyfikowanych krajów bez kwalifikacji z innych zawodów` : '+ 8 krajów z rankingu sztafet (najpierw najlepszy kraj z każdego kontynentu z top 15)'}{ranking.zasady?.zamkniecie ? ` · ranking zamyka się ${formatDatePl(ranking.zasady.zamkniecie)}` : ''}</span>
         </div>
       )}
       {rules && (
@@ -84,7 +84,7 @@ export default function SourceRanking({ ranking }) {
             if (showLine) lineDrawn = true;
             return (
               <div key={'r' + i}>
-                {showLine && <div className="qline">{alloc ? 'Linia kwalifikacji z rankingu sztafet' : 'Linia kwalifikacji z rankingu'}</div>}
+                {showLine && <div className="qline">{alloc && !ranking.quotaRanking ? 'Linia kwalifikacji z rankingu sztafet' : 'Linia kwalifikacji z rankingu'}</div>}
                 <Row r={it.row} />
               </div>
             );

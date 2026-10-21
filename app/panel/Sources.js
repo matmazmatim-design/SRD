@@ -8,7 +8,7 @@ import { parseRolexCsv } from '../../lib/rolex';
 import { rowsFromTable } from '../../lib/tableRows';
 import { progiToText, textToProgi } from '../../lib/compute';
 
-const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon – plik XLS (automatycznie)', owgr: 'OWGR (automatycznie)', rolex: 'Rolex Rankings (automatycznie)', wklejka: 'Wklejka' };
+const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon – plik XLS (automatycznie)', owgr: 'OWGR (automatycznie)', rolex: 'Rolex Rankings (automatycznie)', worldarchery: 'World Archery (automatycznie)', wklejka: 'Wklejka' };
 const WT_LINK = /^https:\/\/([a-z0-9-]+\.)*triathlon\.org\//i;
 
 function slugify(s) {
@@ -115,7 +115,7 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
     setBusy(false);
     const r = json.results?.[0];
     if (!res.ok) return setMsg({ ok: '', err: json.error || 'Nie udało się odświeżyć.' });
-    if (r?.status === 'ok') setMsg({ ok: `Pobrano ${r.rows} wierszy.`, err: '' });
+    if (r?.status === 'ok') setMsg({ ok: `Pobrano ${r.rows} wierszy.${r.message ? ' ' + r.message : ''}`, err: '' });
     else setMsg({ ok: '', err: r?.message || 'Nie udało się odświeżyć.' });
     onChange();
   }
@@ -216,7 +216,7 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
         </form>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {(source.typ === 'uci' || source.typ === 'world_triathlon' || source.typ === 'owgr' || source.typ === 'rolex') && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
+        {(source.typ === 'uci' || source.typ === 'world_triathlon' || source.typ === 'owgr' || source.typ === 'rolex' || source.typ === 'worldarchery') && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
         <button type="button" className="btn btn-ghost" onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? 'Zamknij wklejkę' : 'Wklej ranking'}</button>
         {lastOk && <button type="button" className="btn btn-ghost" onClick={loadPreview}>Podgląd danych</button>}
       </div>
