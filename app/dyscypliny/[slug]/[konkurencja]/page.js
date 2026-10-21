@@ -30,7 +30,7 @@ export default async function EventPage({ params }) {
   const data = await getEventPage(slug, konkurencja);
   if (!data) notFound();
   const { sport, parent, event, siblings, simulation, rows, rankings = [], omtr = null, kwoty = null } = data;
-  const label = e => (siblings.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa);
+  const label = e => e.algorytm?.etykieta || (siblings.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa);
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Warsaw' });
   const plKwoty = (kwoty || []).filter(k => k.kraj === 'POL');
   const OTHER_CONT = /azjat|azji|azja|panamery|ameryk|pacyfik|oceani|afryk/i;

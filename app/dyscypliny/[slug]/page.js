@@ -99,7 +99,7 @@ export default async function SportPage({ params }) {
             const inner = (
               <>
                 <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                  <span className="display" style={{ fontSize: events.filter(x => x.plec === e.plec).length > 1 ? 'clamp(20px, 2vw, 26px)' : 'clamp(26px, 2.6vw, 34px)', minWidth: 0 }}>{events.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa}</span>
+                  <span className="display" style={{ fontSize: !e.algorytm?.etykieta && events.filter(x => x.plec === e.plec).length > 1 ? 'clamp(20px, 2vw, 26px)' : 'clamp(26px, 2.6vw, 34px)', minWidth: 0 }}>{e.algorytm?.etykieta || (events.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa)}</span>
                   {ready
                     ? <span className="chip chip-ok" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Status dostępny</span>
                     : <span className="chip chip-res" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Symulacja w przygotowaniu</span>}
