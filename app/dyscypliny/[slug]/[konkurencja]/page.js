@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import RankingTable from '../../../../components/RankingTable';
 import SourceRanking from '../../../../components/SourceRanking';
 import MixedTeams from '../../../../components/MixedTeams';
+import QuotaBoard from '../../../../components/QuotaBoard';
 import { getEventPage } from '../../../../lib/data';
 import { countryPl } from '../../../../lib/countries';
 import { summarize, isPolish, formatNumber, formatDatePl, QUAL, rowKind, quotaKind, quotaFor, gapToLine, lastQuotaPosition } from '../../../../lib/compute';
@@ -28,7 +29,13 @@ export default async function EventPage({ params }) {
   const { slug, konkurencja } = await params;
   const data = await getEventPage(slug, konkurencja);
   if (!data) notFound();
-  const { sport, parent, event, siblings, simulation, rows, rankings = [], omtr = null } = data;
+  const { sport, parent, event, siblings, simulation, rows, rankings = [], omtr = null, kwoty = null } = data;
+  const label = e => (siblings.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa);
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Warsaw' });
+  const plKwoty = (kwoty || []).filter(k => k.kraj === 'POL');
+  const OTHER_CONT = /azjat|azji|azja|panamery|ameryk|pacyfik|oceani|afryk/i;
+  const nextChance = (kwoty || []).find(k => !k.kraj && k.data_zawodow && k.data_zawodow >= today && !OTHER_CONT.test(k.zawody))
+    || (kwoty || []).find(k => !k.kraj && !k.data_zawodow && !OTHER_CONT.test(k.zawody));
   const plTeam = omtr?.find(r => r.noc === 'POL') || null;
   const mainRanking = rankings[0] || null;
   const bestPl = mainRanking?.polish?.[0] || null;
@@ -42,27 +49,38 @@ export default async function EventPage({ params }) {
       <div className="crumbs">
         <Link href="/dyscypliny">Dyscypliny</Link> <span aria-hidden="true">›</span>{' '}
         {parent && <><Link href={`/dyscypliny/${parent.slug}`}>{parent.name}</Link> <span aria-hidden="true">›</span>{' '}</>}
-        <Link href={`/dyscypliny/${sport.slug}`}>{sport.name}</Link> <span aria-hidden="true">›</span> {PLEC[event.plec] || event.nazwa}
+        <Link href={`/dyscypliny/${sport.slug}`}>{sport.name}</Link> <span aria-hidden="true">›</span> {label(event)}
       </div>
 
       <nav className="seg" aria-label="Konkurencja">
         {siblings.map(e => (
           <Link key={e.slug} href={`/dyscypliny/${sport.slug}/${e.slug}`} aria-current={e.slug === event.slug ? 'page' : undefined}>
-            {PLEC[e.plec] || e.nazwa}
+            {label(e)}
           </Link>
         ))}
       </nav>
 
       <section className="row-wrap">
         <div className="grow" style={{ display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'center' }}>
-          <h1 className="display">{sport.name} <span className="accent">— {(PLEC[event.plec] || event.nazwa).toLowerCase()}</span></h1>
+          <h1 className="display">{sport.name} <span className="accent">— {label(event).toLowerCase()}</span></h1>
           {event.opis && <p className="lead">{event.opis}</p>}
-          {simulation && <p style={{ margin: 0, fontSize: 14, color: 'var(--muted)' }}>Stan na {formatDatePl(simulation.stan_na)} · {simulation.opis}</p>}
+          {simulation && <p style={{ margin: 0, fontSize: 14, color: 'var(--muted)' }}>{simulation.stan_na ? `Stan na ${formatDatePl(simulation.stan_na)} · ` : ''}{simulation.opis}</p>}
           {simulation?.notes?.map(n => <p key={n} style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>⚠ {n}</p>)}
         </div>
         <div className="side panel" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <span className="eyebrow">Polska dziś</span>
-          {simulation?.mixed ? (
+          {simulation?.kwoty ? (
+            <>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                <span className="num" style={{ fontSize: 68 }}>{plKwoty.reduce((s, k) => s + k.liczba, 0)}</span>
+                <span style={{ fontSize: 17, color: 'var(--muted)' }}>{plKwoty.reduce((s, k) => s + k.liczba, 0) === 1 ? 'miejsce' : 'miejsc'} dla Polski</span>
+              </div>
+              {plKwoty.length
+                ? plKwoty.map(k => <span key={k.id} className={QUAL[k.status === 'pending' ? 'virt' : k.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{k.sciezka}: {k.zawody}</span>)
+                : <span className="chip chip-res" style={{ alignSelf: 'flex-start', fontSize: 14 }}>Rezerwa – bez miejsca</span>}
+              {nextChance && <span style={{ fontSize: 14, color: 'var(--body)' }}>Najbliższa szansa: <strong>{nextChance.zawody}</strong>{nextChance.data_zawodow ? ` (${formatDatePl(nextChance.data_zawodow)})` : ''}.</span>}
+            </>
+          ) : simulation?.mixed ? (
             plTeam ? (
               <>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
@@ -170,7 +188,13 @@ export default async function EventPage({ params }) {
         </section>
       )}
 
-      {simulation?.mixed ? (
+      {simulation?.kwoty ? (
+        <section className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <h2 className="h2">Miejsca olimpijskie</h2>
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--muted)', maxWidth: '72ch' }}>Każde miejsce i zawody, na których się je zdobywa. Miejsca należą do krajów – o tym, kto pojedzie, decyduje później federacja.</p>
+          <QuotaBoard kwoty={kwoty || []} />
+        </section>
+      ) : simulation?.mixed ? (
         <section className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <h2 className="h2">Ranking krajów (OMTR)</h2>
           <p style={{ margin: 0, fontSize: 14, color: 'var(--muted)', maxWidth: '72ch' }}>Miejsca dostaje {simulation.teams} krajów z najlepszym zawodnikiem w OGR (kobiet lub mężczyzn), które mają na listach olimpijskich i kobietę, i mężczyznę. Gospodarz (USA) ma miejsce zagwarantowane.</p>
