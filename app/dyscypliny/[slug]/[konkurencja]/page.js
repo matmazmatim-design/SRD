@@ -33,7 +33,7 @@ export default async function EventPage({ params }) {
   const label = e => e.algorytm?.etykieta || (siblings.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa);
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Warsaw' });
   const plKwoty = (kwoty || []).filter(k => k.kraj === 'POL');
-  const OTHER_CONT = /azjat|azji|azja|panamery|ameryk|pacyfik|oceani|afryk/i;
+  const OTHER_CONT = /azjat|azji|azja|panamery|ameryk|pacyfik|oceani|afryk|concacaf|conmebol|norceca|\b(afc|caf|ofc)\b/i;
   // Najbliższe w czasie zawody, na których Polska może jeszcze zdobyć miejsce (bez zawód innych kontynentów)
   // Grupy FEI: Polska jest w grupie C – pomijamy zawody i rankingi innych grup
   const otherGroup = z => /grup[ay] /i.test(z) && !/grup[ay] C\b/i.test(z);
