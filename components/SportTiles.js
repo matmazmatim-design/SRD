@@ -9,6 +9,12 @@ const FILTERS = [
   { id: 'new', label: 'Nowe i powracające' }
 ];
 
+// Długie pojedyncze słowa (np. „Lekkoatletyka”) – mniejsza czcionka zamiast łamania w środku słowa
+function nameSize(name) {
+  const longest = Math.max(...String(name).split(/\s+/).map(w => w.length));
+  return longest >= 13 ? ' xlong' : longest >= 10 ? ' long' : '';
+}
+
 export default function SportTiles({ sports }) {
   const [filter, setFilter] = useState('all');
   const [query, setQuery] = useState('');
@@ -24,7 +30,7 @@ export default function SportTiles({ sports }) {
     return sports
       .filter(s => filter === 'all' || (filter === 'tracked' && s.tracked) || (filter === 'new' && s.badge))
       .filter(s => !q || s.name.toLowerCase().includes(q))
-      .sort((a, b) => (Number(!!b.tracked) - Number(!!a.tracked)) || (Number(!!b.hasRanking) - Number(!!a.hasRanking)) || a.name.localeCompare(b.name, 'pl'));
+      .sort((a, b) => (Number(!!b.tracked) - Number(!!a.tracked)) || (Number(!!b.hasStatus || !!b.hasRanking) - Number(!!a.hasStatus || !!a.hasRanking)) || a.name.localeCompare(b.name, 'pl'));
   }, [sports, filter, query]);
 
   return (
@@ -70,11 +76,11 @@ export default function SportTiles({ sports }) {
       ) : (
         <div className="tiles">
           {list.map(s => (
-            <Link key={s.slug} href={`/dyscypliny/${s.slug}`} className={'tile' + (s.tracked || s.hasRanking ? ' tracked' : '')}>
+            <Link key={s.slug} href={`/dyscypliny/${s.slug}`} className={'tile' + (s.tracked || s.hasRanking || s.hasStatus ? ' tracked' : '')}>
               <span className="speed" aria-hidden="true"><i /><i /><i /></span>
-              <span className="tile-name">{s.name}</span>
+              <span className={'tile-name' + nameSize(s.name)}>{s.name}</span>
               <span className="tile-foot">
-                {s.tracked ? <span className="chip chip-ok">Polak w strefie</span> : s.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
+                {s.tracked ? <span className="chip chip-ok">Polak w strefie</span> : s.hasStatus ? <span className="chip chip-path">Status dostępny</span> : s.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
                 {s.badge && <span className="chip chip-new">{s.badge}</span>}
               </span>
               {s.detail && <span className="tile-detail">{s.detail}</span>}

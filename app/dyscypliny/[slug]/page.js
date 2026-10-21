@@ -36,6 +36,12 @@ function eventWhen(e) {
   return [txt, e.godzina, e.miejsce].filter(Boolean).join(' · ');
 }
 
+// Długie pojedyncze słowa (np. „Lekkoatletyka”) – mniejsza czcionka zamiast łamania w środku słowa
+function nameSize(name) {
+  const longest = Math.max(...String(name).split(/\s+/).map(w => w.length));
+  return longest >= 13 ? ' xlong' : longest >= 10 ? ' long' : '';
+}
+
 export default async function SportPage({ params }) {
   const { slug } = await params;
   const { sport, events, terms, children = [], parent } = await getSportHub(slug);
@@ -71,11 +77,11 @@ export default async function SportPage({ params }) {
           <h2 className="eyebrow" style={{ margin: 0 }}>Dyscypliny</h2>
           <div className="tiles">
             {children.map(c => (
-              <Link key={c.slug} href={`/dyscypliny/${c.slug}`} className={'tile' + (c.tracked || c.hasRanking ? ' tracked' : '')}>
+              <Link key={c.slug} href={`/dyscypliny/${c.slug}`} className={'tile' + (c.tracked || c.hasRanking || c.hasStatus ? ' tracked' : '')}>
                 <span className="speed" aria-hidden="true"><i /><i /><i /></span>
-                <span className="tile-name">{c.name}</span>
+                <span className={'tile-name' + nameSize(c.name)}>{c.name}</span>
                 <span className="tile-foot">
-                  {c.tracked ? <span className="chip chip-ok">Polak w strefie</span> : c.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
+                  {c.tracked ? <span className="chip chip-ok">Polak w strefie</span> : c.hasStatus ? <span className="chip chip-path">Status dostępny</span> : c.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
                 </span>
               </Link>
             ))}

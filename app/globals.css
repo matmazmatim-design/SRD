@@ -89,7 +89,9 @@ h1.display { font-size: clamp(42px, 7vw, 68px); }
 .tile { position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 150px; padding: 18px; border-radius: 12px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); transition: border-color .15s, transform .15s; }
 .tile:hover { border-color: var(--blue); color: var(--ink); transform: translateY(-2px); }
 .tile.tracked { border: 1.5px solid var(--blue); background: linear-gradient(135deg, var(--blue-soft), transparent 60%), var(--surface); }
-.tile-name { font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: 24px; line-height: 1.05; text-transform: uppercase; padding-right: 42px; overflow-wrap: anywhere; }
+.tile-name { font-family: var(--f-display); font-style: italic; font-weight: 800; font-size: 24px; line-height: 1.05; text-transform: uppercase; padding-right: 42px; overflow-wrap: normal; word-break: normal; hyphens: manual; }
+.tile-name.long { font-size: 19px; }
+.tile-name.xlong { font-size: 16px; }
 .speed { position: absolute; top: 16px; right: 14px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .speed i { display: block; height: 4px; border-radius: 2px; transform: skewX(-20deg); background: var(--tilebar); }
 .tile.tracked .speed i { background: var(--blue); }
@@ -117,6 +119,7 @@ h1.display { font-size: clamp(42px, 7vw, 68px); }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .tile { min-height: 110px; padding: 12px; }
   .tile-name { font-size: 17px; padding-right: 26px; }
+  .tile-name.long, .tile-name.xlong { font-size: 14px; }
   .tile-detail { display: none; }
 }
 
