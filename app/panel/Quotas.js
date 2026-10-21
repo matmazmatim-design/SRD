@@ -20,7 +20,7 @@ function Row({ k, token, onSaved }) {
 
   async function save() {
     if (kraj.trim() && !noc) return setMsg('Nie rozpoznano kraju.');
-    const st = noc && status === 'pending' ? 'ok' : !noc ? 'pending' : status;
+    const st = !noc ? 'pending' : status;
     const { error } = await supabase.from('kwoty').update({ kraj: noc, zawodnik: zaw.trim() || null, status: st }).eq('id', k.id);
     if (error) return setMsg('Błąd: ' + error.message);
     setStatus(st);
@@ -76,7 +76,7 @@ export default function Quotas({ session }) {
   if (!events.length) return <p style={{ color: 'var(--muted)' }}>Brak konkurencji z tablicą kwot. Uruchom migrację 0017.</p>;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <p style={{ margin: 0, color: 'var(--body)', maxWidth: '72ch' }}>Po zawodach wpisz kraj (kod albo nazwa), który zdobył miejsce. Z krajem status zmienia się na „Zakwalifikowany”; miejsce warunkowe oznacz jako „Wirtualna kwalifikacja”.</p>
+      <p style={{ margin: 0, color: 'var(--body)', maxWidth: '72ch' }}>Po zawodach wpisz kraj (kod albo nazwa), który zdobył miejsce. Wybierz status: „Zakwalifikowany” dla miejsca zdobytego na zawodach, „Do rozstrzygnięcia” dla warunkowego (np. gospodarz).</p>
       <label className="field" htmlFor="q-event" style={{ maxWidth: 420 }}>Konkurencja
         <select id="q-event" value={sel || ''} onChange={e => setSel(Number(e.target.value))}>
           {events.map(e => <option key={e.id} value={e.id}>{e.dyscypliny?.nazwa} – {e.nazwa}</option>)}

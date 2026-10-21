@@ -76,7 +76,7 @@ export default async function EventPage({ params }) {
                 <span style={{ fontSize: 17, color: 'var(--muted)' }}>{plKwoty.reduce((s, k) => s + k.liczba, 0) === 1 ? 'miejsce' : 'miejsc'} dla Polski</span>
               </div>
               {plKwoty.length
-                ? plKwoty.map(k => <span key={k.id} className={QUAL[k.status === 'pending' ? 'virt' : k.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{k.sciezka}: {k.zawody}</span>)
+                ? plKwoty.map(k => <span key={k.id} className={QUAL[k.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{k.sciezka}: {k.zawody}</span>)
                 : <span className="chip chip-res" style={{ alignSelf: 'flex-start', fontSize: 14 }}>Rezerwa – bez miejsca</span>}
               {nextChance && <span style={{ fontSize: 14, color: 'var(--body)' }}>Najbliższa szansa: <strong>{nextChance.zawody}</strong>{nextChance.data_zawodow ? ` (${formatDatePl(nextChance.data_zawodow)})` : ''}.</span>}
             </>

@@ -29,7 +29,7 @@ export default function QuotaBoard({ kwoty }) {
                   <span>Zawody</span><span style={center}>Miejsc</span><span>Kraj</span><span>Zawodnicy</span><span style={center}>Status</span>
                 </div>
                 {g.items.map(k => {
-                  const kind = k.kraj ? (k.status === 'pending' ? 'virt' : k.status) : 'pending';
+                  const kind = k.kraj ? k.status : 'pending';
                   return (
                     <div key={k.id} className={'rrow' + (k.kraj === 'POL' ? ' pl' : '')} style={{ gridTemplateColumns: COLS }}>
                       <span>
