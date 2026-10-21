@@ -43,13 +43,17 @@ export default async function SportPage({ params }) {
 
   const today = todayIso();
   const isPast = t => (t.data_do || t.data_od) && (t.data_do || t.data_od) < today;
+  // Trwające teraz (np. mistrzostwa od–do obejmujące dzisiejszą datę)
+  const isNow = t => t.data_od && t.data_od <= today && (t.data_do || t.data_od) >= today;
   const firstUpcoming = terms.findIndex(t => !isPast(t));
-  const next = firstUpcoming >= 0 ? terms[firstUpcoming] : null;
+  const ongoing = terms.filter(isNow);
+  const next = terms.find(t => !isPast(t) && !isNow(t)) || null;
+  const plDays = n => (n === 1 ? 'dzień' : 'dni');
   const closes = terms.filter(t => /zamknięcie rankingów/i.test(t.tytul) && t.data_od && t.data_od >= today);
   const usedTypes = new Set(terms.map(t => t.typ));
 
   // Znacznik „Jesteśmy tutaj” stoi przed nagłówkiem roku, jeśli ten rok jeszcze się nie zaczął.
-  const marker = <div className="tl-today"><span>{formatDatePl(today)}</span><i aria-hidden="true" /><em>Jesteśmy tutaj</em></div>;
+  const marker = <div className="tl-today"><span>{formatDatePl(today)}</span><i aria-hidden="true" /><em>{ongoing.length ? 'Jesteśmy tutaj · trwa teraz' : 'Jesteśmy tutaj'}</em></div>;
   const todayBeforeYear = (year, prevYear) => Boolean(year && year !== prevYear && today.slice(0, 4) < year);
 
   const cards = events.length ? events : children.length ? [] : [{ slug: null, plec: 'K' }, { slug: null, plec: 'M' }];
@@ -151,19 +155,20 @@ export default async function SportPage({ params }) {
                 const year = (t.data_od || '').slice(0, 4) || (t.etykieta_daty.match(/20\d\d/) || [''])[0];
                 const prevYear = i > 0 ? ((terms[i - 1].data_od || '').slice(0, 4) || (terms[i - 1].etykieta_daty.match(/20\d\d/) || [''])[0]) : null;
                 const past = isPast(t);
+                const now = isNow(t);
                 const [label, color] = TYP[t.typ] || ['', '#8A949F'];
                 return (
                   <li key={t.kolejnosc}>
                     {i === firstUpcoming && todayBeforeYear(year, prevYear) && marker}
                     {year && year !== prevYear && <div className="tl-year">{year}</div>}
                     {i === firstUpcoming && !todayBeforeYear(year, prevYear) && marker}
-                    <div className={'tl-item' + (past ? ' past' : '')}>
+                    <div className={'tl-item' + (past ? ' past' : '') + (now ? ' now' : '')}>
                       <span className="tl-date">{t.etykieta_daty}</span>
-                      <span className="tl-axis" aria-hidden="true"><span className="tl-dot" style={past ? { background: 'var(--surface)', border: `2px solid ${color}` } : { background: color }} /></span>
+                      <span className="tl-axis" aria-hidden="true"><span className={'tl-dot' + (now ? ' pulse' : '')} style={past ? { background: 'var(--surface)', border: `2px solid ${color}` } : { background: color, color }} /></span>
                       <div className="tl-body">
                         <strong>{t.tytul}</strong>
                         {t.opis && <span>{t.opis}</span>}
-                        <span className="tl-tag" style={{ border: `1px solid ${color}` }}>{label}{past ? ' · zakończone' : ''}</span>
+                        <span className="tl-tag" style={{ border: `1px solid ${color}` }}>{label}{past ? ' · zakończone' : now ? ` · trwa do ${formatDatePl(t.data_do || t.data_od)}` : ''}</span>
                       </div>
                     </div>
                   </li>
@@ -172,11 +177,22 @@ export default async function SportPage({ params }) {
             </ol>
           </div>
           <aside className="side" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {ongoing.map(t => {
+              const left = daysBetween(today, t.data_do || t.data_od);
+              return (
+                <div key={'now' + t.kolejnosc} className="feature" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span className="eyebrow" style={{ color: 'var(--blue-text)', display: 'flex', alignItems: 'center', gap: 8 }}><span className="live-dot" aria-hidden="true" />Trwa teraz</span>
+                  <span style={{ fontSize: 20, fontWeight: 600 }}>{t.tytul}</span>
+                  <span className="num" style={{ fontSize: 40 }}>{left === 0 ? 'ostatni dzień' : `jeszcze ${left} ${plDays(left)}`}</span>
+                  <span className="muted-on-dark" style={{ fontSize: 14 }}>{t.etykieta_daty}</span>
+                </div>
+              );
+            })}
             {next && (
               <div className="feature" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span className="eyebrow muted-on-dark" style={{ color: '#A9B8C6' }}>Następny termin</span>
                 <span style={{ fontSize: 20, fontWeight: 600 }}>{next.tytul}</span>
-                {next.data_od && <span className="num" style={{ fontSize: 40 }}>za {daysBetween(today, next.data_od)} dni</span>}
+                {next.data_od && <span className="num" style={{ fontSize: 40 }}>za {daysBetween(today, next.data_od)} {plDays(daysBetween(today, next.data_od))}</span>}
                 <span className="muted-on-dark" style={{ fontSize: 14 }}>{next.etykieta_daty}</span>
               </div>
             )}

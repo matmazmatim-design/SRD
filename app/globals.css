@@ -220,3 +220,11 @@ details.more summary { cursor: pointer; min-height: 44px; display: flex; align-i
 .rules-pop ul { margin: 10px 0 14px; padding-left: 20px; color: var(--body); display: grid; gap: 6px; }
 .hint { font-size: 12px; font-weight: 400; color: var(--muted); line-height: 1.4; }
 fieldset .hint { display: block; }
+
+/* Termin, który trwa teraz */
+.tl-item.now .tl-body strong { color: var(--blue-text); }
+.tl-dot.pulse { box-shadow: 0 0 0 0 currentColor; animation: tl-pulse 1.8s ease-out infinite; }
+@keyframes tl-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 60%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: live 1.4s ease-in-out infinite; }
+@keyframes live { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .tl-dot.pulse, .live-dot { animation: none; } }
