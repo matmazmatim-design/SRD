@@ -195,6 +195,22 @@ function Editor({ session }) {
   );
 }
 
+// Przebudowuje wszystkie strony z aktualnych danych (np. po migracji w Supabase)
+function RebuildButton({ session }) {
+  const [state, setState] = useState('');
+  async function run() {
+    setState('…');
+    const res = await fetch('/api/odswiez', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + session.access_token }, body: JSON.stringify({ revalidateOnly: true }) }).catch(() => null);
+    setState(res?.ok ? 'Strony odświeżone' : 'Nie udało się');
+  }
+  return (
+    <>
+      {state && state !== '…' && <span className="hint" role="status">{state}</span>}
+      <button type="button" className="btn btn-primary" onClick={run} disabled={state === '…'}>Odśwież strony</button>
+    </>
+  );
+}
+
 export default function PanelPage() {
   const [session, setSession] = useState(undefined);
   const [isAdmin, setIsAdmin] = useState(null);
@@ -217,7 +233,12 @@ export default function PanelPage() {
     <main className="container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         <span className="eyebrow">Panel redakcji</span>
-        {session && <button type="button" className="btn btn-ghost" onClick={() => supabase.auth.signOut()}>Wyloguj</button>}
+        {session && (
+          <span style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            {isAdmin && <RebuildButton session={session} />}
+            <button type="button" className="btn btn-ghost" onClick={() => supabase.auth.signOut()}>Wyloguj</button>
+          </span>
+        )}
       </div>
       {!supabase && <p className="panel msg-err">Brak połączenia z bazą: ustaw zmienne Supabase w Vercelu.</p>}
       {supabase && session === undefined && <p style={{ color: 'var(--muted)' }}>Sprawdzam logowanie…</p>}
