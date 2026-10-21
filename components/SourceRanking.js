@@ -61,7 +61,7 @@ export default function SourceRanking({ ranking }) {
             <span key={e.noc} className="chip chip-ok">{countryPl(e.noc)} – {e.sciezka.replace(/ \(.*\)$/, '').replace(/^Gospodarz$/, 'gospodarz')}</span>
           ))}
           {alloc.pending.map(p => <span key={p.sciezka} className="chip chip-soon">{p.sciezka} – do rozstrzygnięcia</span>)}
-          <span>{ranking.quotaRanking ? `${ranking.zasady.miejsc} ${ranking.zasady.miejsc === 1 ? 'miejsce' : 'miejsca'} dla najwyżej sklasyfikowanych krajów bez kwalifikacji z innych zawodów` : '+ 8 krajów z rankingu sztafet (najpierw najlepszy kraj z każdego kontynentu z top 15)'}{ranking.zasady?.zamkniecie ? ` · ranking zamyka się ${formatDatePl(ranking.zasady.zamkniecie)}` : ''}</span>
+          <span>{ranking.quotaRanking ? (ranking.zasady.grupy ? `Miejsca z rankingu: ${ranking.zasady.grupy.map(g => `${g.etykieta} ${g.miejsc || 1}`).join(', ')} (najlepsze kraje z kontynentu)` : `${ranking.zasady.miejsc} ${ranking.zasady.miejsc === 1 ? 'miejsce' : 'miejsca'} dla najwyżej sklasyfikowanych krajów bez kwalifikacji z innych zawodów`) : '+ 8 krajów z rankingu sztafet (najpierw najlepszy kraj z każdego kontynentu z top 15)'}{ranking.zasady?.zamkniecie ? ` · ranking zamyka się ${formatDatePl(ranking.zasady.zamkniecie)}` : ''}</span>
         </div>
       )}
       {rules && (
