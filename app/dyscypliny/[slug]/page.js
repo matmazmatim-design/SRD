@@ -98,14 +98,18 @@ export default async function SportPage({ params }) {
             const when = e.slug ? eventWhen(e) : null;
             const inner = (
               <>
-                <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                  <span className="display" style={{ fontSize: !e.algorytm?.etykieta && events.filter(x => x.plec === e.plec).length > 1 ? 'clamp(20px, 2vw, 26px)' : 'clamp(26px, 2.6vw, 34px)', minWidth: 0 }}>{e.algorytm?.etykieta || (events.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa)}</span>
+                <span style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px 10px' }}>
+                  {(() => {
+                    const t = e.algorytm?.etykieta || (events.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa);
+                    const long = t.length > 14;
+                    return <span className="display" style={{ fontSize: long ? 'clamp(20px, 2vw, 26px)' : 'clamp(26px, 2.6vw, 34px)', flex: '1 1 auto', minWidth: 0, lineHeight: 1.05, paddingRight: 4 }}>{t}</span>;
+                  })()}
                   {ready
                     ? <span className="chip chip-ok" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Status dostępny</span>
                     : <span className="chip chip-res" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Symulacja w przygotowaniu</span>}
                 </span>
                 {when && <span style={{ color: 'var(--muted)', fontSize: 14, textTransform: 'capitalize' }}>{when}</span>}
-                {e.opis && <span style={{ color: 'var(--body)', fontSize: 15 }}>{e.opis}</span>}
+                {e.opis && <span style={{ color: 'var(--body)', fontSize: 15, lineHeight: 1.55, textAlign: 'justify', hyphens: 'auto', textWrap: 'pretty' }}>{e.opis}</span>}
                 {e.miejsc ? <span style={{ fontSize: 14, color: 'var(--body)' }}>Miejsc w konkurencji: <strong style={{ color: 'var(--ink)' }}>{e.miejsc}</strong></span> : null}
                 {e.poles?.length > 0 && (
                   <span style={{ display: 'flex', flexDirection: 'column', borderTop: '1px solid var(--line)' }}>
