@@ -257,3 +257,6 @@ fieldset .hint { display: block; }
 :root[data-theme='light'] { --zone: #7A5C00; --zone-bg: #FFF4C2; --zone-dot: #D4A900; }
 .chip-zone { background: var(--zone-bg); color: var(--zone); }
 .chip-zone::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--zone-dot); }
+
+/* Trwające terminy nad kaflami dyscyplin/konkurencji */
+.now-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }

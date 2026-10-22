@@ -48,7 +48,6 @@ export default async function SportPage({ params }) {
   const isNow = t => t.data_od && t.data_od <= today && (t.data_do || t.data_od) >= today;
   const firstUpcoming = terms.findIndex(t => !isPast(t));
   const ongoing = terms.filter(isNow);
-  const next = terms.find(t => !isPast(t) && !isNow(t)) || null;
   const plDays = n => (n === 1 ? 'dzień' : 'dni');
   const closes = terms.filter(t => /zamknięcie rankingów/i.test(t.tytul) && t.data_od && t.data_od >= today);
   const usedTypes = new Set(terms.map(t => t.typ));
@@ -70,6 +69,22 @@ export default async function SportPage({ params }) {
         <h1 className="display" style={{ fontSize: 'clamp(48px, 8vw, 76px)' }}>{sport.name}</h1>
         <p className="lead">{children.length && !events.length ? 'Wybierz dyscyplinę, a potem konkurencję kobiet lub mężczyzn.' : 'Wybierz konkurencję, żeby zobaczyć listę olimpijską, Polaków i linię kwalifikacji.'}</p>
       </section>
+
+      {ongoing.length > 0 && (
+        <section className="now-strip" aria-label="Trwa teraz">
+            {ongoing.map(t => {
+              const left = daysBetween(today, t.data_do || t.data_od);
+              return (
+                <div key={'now' + t.kolejnosc} className="feature" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <span className="eyebrow" style={{ color: 'var(--blue-text)', display: 'flex', alignItems: 'center', gap: 8 }}><span className="live-dot" aria-hidden="true" />Trwa teraz</span>
+                  <span style={{ fontSize: 20, fontWeight: 600 }}>{t.tytul}</span>
+                  <span className="num" style={{ fontSize: 40 }}>{left === 0 ? 'ostatni dzień' : `jeszcze ${left} ${plDays(left)}`}</span>
+                  <span className="muted-on-dark" style={{ fontSize: 14 }}>{t.etykieta_daty}</span>
+                </div>
+              );
+            })}
+        </section>
+      )}
 
       {children.length > 0 && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -183,26 +198,7 @@ export default async function SportPage({ params }) {
               })}
             </ol>
           </div>
-          <aside className="side" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {ongoing.map(t => {
-              const left = daysBetween(today, t.data_do || t.data_od);
-              return (
-                <div key={'now' + t.kolejnosc} className="feature" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <span className="eyebrow" style={{ color: 'var(--blue-text)', display: 'flex', alignItems: 'center', gap: 8 }}><span className="live-dot" aria-hidden="true" />Trwa teraz</span>
-                  <span style={{ fontSize: 20, fontWeight: 600 }}>{t.tytul}</span>
-                  <span className="num" style={{ fontSize: 40 }}>{left === 0 ? 'ostatni dzień' : `jeszcze ${left} ${plDays(left)}`}</span>
-                  <span className="muted-on-dark" style={{ fontSize: 14 }}>{t.etykieta_daty}</span>
-                </div>
-              );
-            })}
-            {next && (
-              <div className="feature" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span className="eyebrow muted-on-dark" style={{ color: '#A9B8C6' }}>Następny termin</span>
-                <span style={{ fontSize: 20, fontWeight: 600 }}>{next.tytul}</span>
-                {next.data_od && <span className="num" style={{ fontSize: 40 }}>za {daysBetween(today, next.data_od)} {plDays(daysBetween(today, next.data_od))}</span>}
-                <span className="muted-on-dark" style={{ fontSize: 14 }}>{next.etykieta_daty}</span>
-              </div>
-            )}
+          {closes.length > 0 && <aside className="side" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {closes.map(close => (
               <div key={close.kolejnosc} className="panel" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <span className="eyebrow">{close.tytul}</span>
@@ -210,7 +206,7 @@ export default async function SportPage({ params }) {
                 <span style={{ fontSize: 14, color: 'var(--body)' }}>{close.etykieta_daty}. Liczy się wszystko, co Polacy zdobędą do tego dnia.</span>
               </div>
             ))}
-          </aside>
+          </aside>}
         </section>
       )}
     </main>
