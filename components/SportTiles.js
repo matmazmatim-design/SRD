@@ -74,7 +74,8 @@ export default function SportTiles({ sports }) {
               <span className="speed" aria-hidden="true"><i /><i /><i /></span>
               <span className="tile-name">{s.name}</span>
               <span className="tile-foot">
-                {s.tracked ? <span className="chip chip-ok">Polak w strefie</span> : s.hasStatus ? <span className="chip chip-path">Status dostępny</span> : s.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
+                {s.tracked && <span className="chip chip-ok">Polak w strefie</span>}
+                {s.rankingBased && <span className="chip chip-path">Ranking</span>}
                 {s.badge && <span className="chip chip-new">{s.badge}</span>}
               </span>
               <span className="tile-detail">{s.detail || ''}</span>

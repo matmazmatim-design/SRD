@@ -79,7 +79,8 @@ export default async function SportPage({ params }) {
                 <span className="speed" aria-hidden="true"><i /><i /><i /></span>
                 <span className="tile-name">{c.name}</span>
                 <span className="tile-foot">
-                  {c.tracked ? <span className="chip chip-ok">Polak w strefie</span> : c.hasStatus ? <span className="chip chip-path">Status dostępny</span> : c.hasRanking ? <span className="chip chip-path">Ranking dostępny</span> : <span className="chip chip-soon">Symulacja wkrótce</span>}
+                  {c.tracked && <span className="chip chip-ok">Polak w strefie</span>}
+                {c.rankingBased && <span className="chip chip-path">Ranking</span>}
                 </span>
                 <span className="tile-detail">{c.detail || ''}</span>
               </Link>
@@ -104,9 +105,8 @@ export default async function SportPage({ params }) {
                     const long = t.length > 14;
                     return <span className="display" style={{ fontSize: long ? 'clamp(20px, 2vw, 26px)' : 'clamp(26px, 2.6vw, 34px)', flex: '1 1 auto', minWidth: 0, lineHeight: 1.05, paddingRight: 4 }}>{t}</span>;
                   })()}
-                  {ready
-                    ? <span className="chip chip-ok" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Status dostępny</span>
-                    : <span className="chip chip-res" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Symulacja w przygotowaniu</span>}
+                  {(e.rankings?.length > 0 || (e.algorytm?.typ && e.algorytm.typ !== 'kwoty') || e.auto?.kwoty?.some(k => /ranking/i.test(k.zawody || '')))
+                    && <span className="chip chip-path" style={{ flexShrink: 0, whiteSpace: 'nowrap' }}>Ranking</span>}
                 </span>
                 {when && <span style={{ color: 'var(--muted)', fontSize: 14, textTransform: 'capitalize' }}>{when}</span>}
                 {e.opis && <span style={{ color: 'var(--body)', fontSize: 15, lineHeight: 1.55, textAlign: 'justify', hyphens: 'auto', textWrap: 'pretty' }}>{e.opis}</span>}
