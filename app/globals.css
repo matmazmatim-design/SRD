@@ -117,7 +117,7 @@ h1.display { font-size: clamp(42px, 7vw, 68px); }
   .stamp { display: none; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .tile { min-height: 110px; padding: 12px; }
-  .tile-name { font-size: 15px; padding-right: 26px; }
+  .tile-name { font-size: 15px; padding-right: 38px; }
   .tile-detail { display: none; }
 }
 
@@ -260,3 +260,10 @@ fieldset .hint { display: block; }
 
 /* Trwające terminy nad kaflami dyscyplin/konkurencji */
 .now-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+
+/* Długie wartości (daty) w liczbach zasad – mniejsza czcionka, na telefonie cała szerokość */
+.rules-stat.long b { font-size: clamp(22px, 2.4vw, 30px); }
+@media (max-width: 760px) {
+  .rules-stat.long { grid-column: span 2; }
+  .rules-stat b { font-size: 30px; }
+}

@@ -16,7 +16,7 @@ export default function QualRules({ rules }) {
       {rules.liczby?.length > 0 && (
         <div className="rules-stats">
           {rules.liczby.map(l => (
-            <div key={l.opis} className="rules-stat"><b>{l.wartosc}</b><span>{l.opis}</span></div>
+            <div key={l.opis} className={'rules-stat' + (String(l.wartosc).length > 5 ? ' long' : '')}><b>{l.wartosc}</b><span>{l.opis}</span></div>
           ))}
         </div>
       )}
