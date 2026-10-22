@@ -5,10 +5,11 @@ import { supabase } from '../../lib/supabase';
 import { paramsFromCurl } from '../../lib/uci';
 import { parsePastedTable } from '../../lib/paste';
 import { parseRolexCsv } from '../../lib/rolex';
+import { parseIjfOlympicHtml } from '../../lib/ijf';
 import { rowsFromTable } from '../../lib/tableRows';
 import { progiToText, textToProgi } from '../../lib/compute';
 
-const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon – plik XLS (automatycznie)', owgr: 'OWGR (automatycznie)', rolex: 'Rolex Rankings (automatycznie)', worldarchery: 'World Archery (automatycznie)', wklejka: 'Wklejka' };
+const TYP = { uci: 'UCI (automatycznie)', world_triathlon: 'World Triathlon – plik XLS (automatycznie)', owgr: 'OWGR (automatycznie)', rolex: 'Rolex Rankings (automatycznie)', worldarchery: 'World Archery (automatycznie)', ijf: 'IJF – ranking olimpijski (automatycznie)', wklejka: 'Wklejka' };
 const WT_LINK = /^https:\/\/([a-z0-9-]+\.)*triathlon\.org\//i;
 
 function slugify(s) {
@@ -43,7 +44,9 @@ function PasteBox({ source, token, onSaved }) {
     try {
       const t = await f.text();
       const first = t.split(/\r?\n/)[0] || '';
-      const rows = /player_name/i.test(first)
+      const rows = t.includes('"wrlBrowserOlympic"')
+        ? parseIjfOlympicHtml(t).rows
+        : /player_name/i.test(first)
         ? parseRolexCsv(t, source.parametry || {})
         : rowsFromTable(t.split(/\r?\n/).filter(l => l.trim()).map(l => l.split(first.includes(';') ? ';' : first.includes('\t') ? '\t' : ',').map(c => c.replace(/^"|"$/g, '').trim())));
       if (!rows.length) throw new Error('Nie znalazłem w pliku tabeli rankingu.');
@@ -77,8 +80,8 @@ function PasteBox({ source, token, onSaved }) {
         <textarea id={'paste-' + source.id} value={text} onChange={e => setText(e.target.value)} rows={6}
           style={{ font: 'inherit', fontSize: 14, fontWeight: 400, padding: 10, borderRadius: 8, border: '1px solid var(--line-2)', background: 'var(--bg)', color: 'var(--ink)', resize: 'vertical' }} />
       </label>
-      <label className="field" htmlFor={'file-' + source.id}>…albo wgraj plik CSV pobrany ze strony źródła
-        <input id={'file-' + source.id} type="file" accept=".csv,text/csv,.txt" onChange={onFile} style={{ minHeight: 0, padding: 8 }} />
+      <label className="field" htmlFor={'file-' + source.id}>…albo wgraj plik CSV pobrany ze strony źródła (lub zapisaną stronę HTML rankingu IJF)
+        <input id={'file-' + source.id} type="file" accept=".csv,text/csv,.txt,.html,.htm,text/html" onChange={onFile} style={{ minHeight: 0, padding: 8 }} />
       </label>
       <label className="field" htmlFor={'date-' + source.id} style={{ maxWidth: 220 }}>Stan na
         <input id={'date-' + source.id} type="date" value={date} onChange={e => setDate(e.target.value)} />
@@ -216,7 +219,7 @@ function SourceCard({ source, last, lastOk, token, onChange, events }) {
         </form>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        {(source.typ === 'uci' || source.typ === 'world_triathlon' || source.typ === 'owgr' || source.typ === 'rolex' || source.typ === 'worldarchery') && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
+        {(source.typ === 'uci' || source.typ === 'world_triathlon' || source.typ === 'owgr' || source.typ === 'rolex' || source.typ === 'worldarchery' || source.typ === 'ijf') && <button type="button" className="btn btn-primary" disabled={busy} onClick={refresh}>{busy ? 'Pobieram…' : 'Odśwież teraz'}</button>}
         <button type="button" className="btn btn-ghost" onClick={() => setOpen(o => !o)} aria-expanded={open}>{open ? 'Zamknij wklejkę' : 'Wklej ranking'}</button>
         {lastOk && <button type="button" className="btn btn-ghost" onClick={loadPreview}>Podgląd danych</button>}
       </div>

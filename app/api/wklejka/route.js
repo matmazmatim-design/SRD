@@ -23,7 +23,11 @@ export async function POST(request) {
       zawodnik: String(r.zawodnik || '').trim().slice(0, 200),
       kraj: r.kraj ? String(r.kraj).slice(0, 100) : null,
       kod_kraju: r.kod_kraju ? String(r.kod_kraju).slice(0, 10) : null,
-      punkty: Number.isFinite(Number(r.punkty)) && r.punkty !== null ? Number(r.punkty) : null
+      punkty: Number.isFinite(Number(r.punkty)) && r.punkty !== null ? Number(r.punkty) : null,
+      // dodatkowe pola z plików federacji (np. IJF: q_status) – tylko proste wartości
+      dodatkowe: r.dodatkowe && typeof r.dodatkowe === 'object'
+        ? Object.fromEntries(Object.entries(r.dodatkowe).filter(([k, v]) => /^[a-z_]{1,30}$/.test(k) && (v === null || ['string', 'number'].includes(typeof v))).slice(0, 5).map(([k, v]) => [k, typeof v === 'string' ? v.slice(0, 50) : v]))
+        : null
     }))
     .filter(r => r.zawodnik);
 
