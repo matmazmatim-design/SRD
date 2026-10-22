@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 
 const FILTERS = [
   { id: 'all', label: 'Wszystkie' },
-  { id: 'tracked', label: 'Z Polakami w strefie' },
+  { id: 'tracked', label: 'Z Polakami (kwalifikacja lub strefa)' },
   { id: 'new', label: 'Nowe i powracające' }
 ];
 
@@ -74,7 +74,7 @@ export default function SportTiles({ sports }) {
               <span className="speed" aria-hidden="true"><i /><i /><i /></span>
               <span className="tile-name">{s.name}</span>
               <span className="tile-foot">
-                {s.tracked && <span className="chip chip-ok">Polak w strefie</span>}
+                {s.qualified ? <span className="chip chip-ok">Kwalifikacja</span> : s.tracked && <span className="chip chip-virt">Polak w strefie</span>}
                 {s.rankingBased && <span className="chip chip-path">Ranking</span>}
                 {s.badge && <span className="chip chip-new">{s.badge}</span>}
               </span>

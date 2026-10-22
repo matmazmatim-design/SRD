@@ -79,7 +79,7 @@ export default async function SportPage({ params }) {
                 <span className="speed" aria-hidden="true"><i /><i /><i /></span>
                 <span className="tile-name">{c.name}</span>
                 <span className="tile-foot">
-                  {c.tracked && <span className="chip chip-ok">Polak w strefie</span>}
+                  {c.qualified ? <span className="chip chip-ok">Kwalifikacja</span> : c.tracked && <span className="chip chip-virt">Polak w strefie</span>}
                 {c.rankingBased && <span className="chip chip-path">Ranking</span>}
                 </span>
                 <span className="tile-detail">{c.detail || ''}</span>
