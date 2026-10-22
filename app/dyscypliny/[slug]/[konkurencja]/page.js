@@ -33,13 +33,16 @@ export default async function EventPage({ params }) {
   const label = e => e.algorytm?.etykieta || (siblings.filter(x => x.plec === e.plec).length > 1 ? e.nazwa : PLEC[e.plec] || e.nazwa);
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Warsaw' });
   const plKwoty = (kwoty || []).filter(k => k.kraj === 'POL');
+  const plAthletes = plKwoty.reduce((n, k) => n + (k.liczba || 1), 0);
+  // Drużyna Polski już ma miejsce (kraj może mieć tylko jedną drużynę) – nie pokazujemy kolejnej szansy
+  const plTeamIn = plKwoty.some(k => k.status === 'ok' && (k.liczba || 1) > 1);
   const OTHER_CONT = /azjat|azji|azja|panamery|ameryk|pacyfik|oceani|afryk|concacaf|conmebol|norceca|\b(afc|caf|ofc)\b/i;
   // Najbliższe w czasie zawody, na których Polska może jeszcze zdobyć miejsce (bez zawód innych kontynentów)
   // Grupy FEI: Polska jest w grupie C – pomijamy zawody i rankingi innych grup
   const otherGroup = z => /grup[ay] /i.test(z) && !/grup[ay] C\b/i.test(z);
   const open = (kwoty || []).filter(k => !k.kraj && !otherGroup(k.zawody) && (!OTHER_CONT.test(k.zawody) || /europ/i.test(k.zawody)));
   // Judo: miejsca tylko z rankingu IJF – bez „najbliższej szansy”
-  const nextChance = sport.slug === 'judo' || parent?.slug === 'judo' ? null : open.filter(k => k.data_zawodow && k.data_zawodow >= today).sort((a, b) => a.data_zawodow.localeCompare(b.data_zawodow))[0]
+  const nextChance = plTeamIn || sport.slug === 'judo' || parent?.slug === 'judo' ? null : open.filter(k => k.data_zawodow && k.data_zawodow >= today).sort((a, b) => a.data_zawodow.localeCompare(b.data_zawodow))[0]
     || open.find(k => !k.data_zawodow);
   const plTeam = omtr?.find(r => r.noc === 'POL') || null;
   const mainRanking = rankings[0] || null;
@@ -77,11 +80,11 @@ export default async function EventPage({ params }) {
           {simulation?.kwoty ? (
             <>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                <span className="num" style={{ fontSize: 68 }}>{plKwoty.reduce((s, k) => s + k.liczba, 0)}</span>
-                <span style={{ fontSize: 17, color: 'var(--muted)' }}>{plKwoty.reduce((s, k) => s + k.liczba, 0) === 1 ? 'miejsce' : 'miejsc'} dla Polski</span>
+                <span className="num" style={{ fontSize: 68 }}>{plKwoty.length}</span>
+                <span style={{ fontSize: 17, color: 'var(--muted)' }}>{plKwoty.length === 1 ? 'miejsce' : plKwoty.length >= 2 && plKwoty.length <= 4 ? 'miejsca' : 'miejsc'} dla Polski{plAthletes > plKwoty.length ? ` (${plAthletes} zawodników)` : ''}</span>
               </div>
               {plKwoty.length
-                ? plKwoty.map(k => <span key={k.id} className={QUAL[k.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{k.zawodnik ? `${k.zawodnik} · ${k.sciezka === 'Kwoty kontynentalne' ? 'kwota kontynentalna' : k.sciezka}` : `${k.sciezka}: ${k.zawody}`}</span>)
+                ? plKwoty.map(k => <span key={k.id} className={QUAL[k.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{k.zawodnik ? `${k.zawodnik} · ${k.sciezka === 'Kwoty kontynentalne' ? 'kwota kontynentalna' : k.sciezka}` : /\d/.test(k.sciezka) && !/\d{4}/.test(k.sciezka) ? `${k.sciezka} · ${k.zawody}` : k.zawody}</span>)
                 : <span className="chip chip-res" style={{ alignSelf: 'flex-start', fontSize: 14 }}>Rezerwa – bez miejsca</span>}
               {nextChance && <span style={{ fontSize: 14, color: 'var(--body)' }}>Najbliższa szansa: <strong>{nextChance.zawody}</strong>{nextChance.data_zawodow ? ` (${formatDatePl(nextChance.data_zawodow)})` : ''}.</span>}
             </>
