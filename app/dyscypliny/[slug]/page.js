@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { SPORTS } from '../../../lib/sports';
 import { getSportHub } from '../../../lib/data';
+import QualRules from '../../../components/QualRules';
 import { formatDatePl, daysBetween, quotaFor, QUAL, rowKind, quotaKind } from '../../../lib/compute';
 
 export const revalidate = 300;
@@ -79,7 +80,7 @@ export default async function SportPage({ params }) {
                 <span className="speed" aria-hidden="true"><i /><i /><i /></span>
                 <span className="tile-name">{c.name}</span>
                 <span className="tile-foot">
-                  {c.qualified ? <span className="chip chip-ok">Kwalifikacja</span> : c.tracked && <span className="chip chip-virt">Polak w strefie</span>}
+                  {c.qualified ? <span className="chip chip-ok">Kwalifikacja</span> : c.tracked && <span className="chip chip-zone">Polak w strefie</span>}
                 {c.rankingBased && <span className="chip chip-path">Ranking</span>}
                 </span>
                 <span className="tile-detail">{c.detail || ''}</span>
@@ -144,6 +145,8 @@ export default async function SportPage({ params }) {
           })}
         </div>
       </section>}
+
+      {sport.rules && <QualRules rules={sport.rules} />}
 
       {terms.length > 0 && (
         <section className="row-wrap" style={{ alignItems: 'flex-start' }}>
