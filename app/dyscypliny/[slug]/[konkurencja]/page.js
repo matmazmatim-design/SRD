@@ -38,7 +38,8 @@ export default async function EventPage({ params }) {
   // Grupy FEI: Polska jest w grupie C – pomijamy zawody i rankingi innych grup
   const otherGroup = z => /grup[ay] /i.test(z) && !/grup[ay] C\b/i.test(z);
   const open = (kwoty || []).filter(k => !k.kraj && !otherGroup(k.zawody) && (!OTHER_CONT.test(k.zawody) || /europ/i.test(k.zawody)));
-  const nextChance = open.filter(k => k.data_zawodow && k.data_zawodow >= today).sort((a, b) => a.data_zawodow.localeCompare(b.data_zawodow))[0]
+  // Judo: miejsca tylko z rankingu IJF – bez „najbliższej szansy”
+  const nextChance = sport.slug === 'judo' || parent?.slug === 'judo' ? null : open.filter(k => k.data_zawodow && k.data_zawodow >= today).sort((a, b) => a.data_zawodow.localeCompare(b.data_zawodow))[0]
     || open.find(k => !k.data_zawodow);
   const plTeam = omtr?.find(r => r.noc === 'POL') || null;
   const mainRanking = rankings[0] || null;
@@ -80,7 +81,7 @@ export default async function EventPage({ params }) {
                 <span style={{ fontSize: 17, color: 'var(--muted)' }}>{plKwoty.reduce((s, k) => s + k.liczba, 0) === 1 ? 'miejsce' : 'miejsc'} dla Polski</span>
               </div>
               {plKwoty.length
-                ? plKwoty.map(k => <span key={k.id} className={QUAL[k.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{k.sciezka}: {k.zawody}</span>)
+                ? plKwoty.map(k => <span key={k.id} className={QUAL[k.status].chip} style={{ alignSelf: 'flex-start', fontSize: 14 }}>{k.zawodnik ? `${k.zawodnik} · ${k.sciezka === 'Kwoty kontynentalne' ? 'kwota kontynentalna' : k.sciezka}` : `${k.sciezka}: ${k.zawody}`}</span>)
                 : <span className="chip chip-res" style={{ alignSelf: 'flex-start', fontSize: 14 }}>Rezerwa – bez miejsca</span>}
               {nextChance && <span style={{ fontSize: 14, color: 'var(--body)' }}>Najbliższa szansa: <strong>{nextChance.zawody}</strong>{nextChance.data_zawodow ? ` (${formatDatePl(nextChance.data_zawodow)})` : ''}.</span>}
             </>
